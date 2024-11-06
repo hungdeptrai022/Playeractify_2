@@ -53,7 +53,14 @@ const Navbar = () => {
     recognition.interimResults = false;
 
     recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = () => {
+      setIsListening(false);
+      if (searchQuery) {
+        performSearch(); // Tìm kiếm sau khi dừng nghe
+      }
+    }
+     
+
 
     recognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
@@ -62,6 +69,9 @@ const Navbar = () => {
     };
 
     recognition.start();
+  };
+  const performSearch = () => {
+    history.push(`/search?query=${encodeURIComponent(searchQuery)}`);
   };
   return (
     <>

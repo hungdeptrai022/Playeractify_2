@@ -122,67 +122,67 @@ export const albumsData = [
 
 export const songsData = [
     {
-        song_id:0,
-        song_name: "Song One",
-        song_image: img1,
+        song_id1:0,
+        song_name1: "Song One",
+        song_image1: img1,
         file:song1,
-        song_artist:"D-Low",
+        song_artist1:"D-Low",
         duration:"3:00"
     },
     {
-        song_id:1,
-        song_name: "Song Two",
-        song_image: img2,
+        song_id1:1,
+        song_name1: "Song Two",
+        song_image1: img2,
         file:song2,
-        song_artist:"Put a smile on your face with these happy tunes",
+        song_artist1:"Put a smile on your face with these happy tunes",
         duration:"2:20"
     },
     {
-        song_id:2,
-        song_name: "Song Three",
-        song_image: img3,
+        song_id1:2,
+        song_name1: "Song Three",
+        song_image1: img3,
         file:song3,
-        song_artist:"Put a smile on your face with these happy tunes",
+        song_artist1:"Put a smile on your face with these happy tunes",
         duration:"2:32"
     },
     {
-        song_id:3,
-        song_name: "Object",
-        song_image: img4,
+        song_id1:3,
+        song_name1: "Object",
+        song_image1: img4,
         file:object,
-        song_artist:"Put a smile on your face with these happy tunes",
+        song_artist1:"Put a smile on your face with these happy tunes",
         duration:"3:14"
     },
     {
-        song_id:4,
-        song_name: "Song Five",
-        song_image: img5,
+        song_id1:4,
+        song_name1: "Song Five",
+        song_image1: img5,
         file:song2,
-        song_artist:"Put a smile on your face with these happy tunes",
+        song_artist1:"Put a smile on your face with these happy tunes",
         duration:"3:10"
     },
     {
-        song_id:5,
-        song_name: "Song Six",
-        song_image: img14    ,
+        song_id1:5,
+        song_name1: "Song Six",
+        song_image1: img14    ,
         file:song3,
-        song_artist:"Put a smile on your face with these happy tunes",
+        song_artist1:"Put a smile on your face with these happy tunes",
         duration:"2:45"
     },
     {
-        song_id:6,
-        song_name: "Song Seven",
-        song_image: img7,
+        song_id1:6,
+        song_name1: "Song Seven",
+        song_image1: img7,
         file:song1,
-        song_artist:"Put a smile on your face with these happy tunes",
+        song_artist1:"Put a smile on your face with these happy tunes",
         duration:"2:18"
     },
     {
-        song_id:7,
-        song_name: "Song Eight",
-        song_image: img12,
+        song_id1:7,
+        song_name1: "Song Eight",
+        song_image1: img12,
         file:song2,
-        song_artist:"Put a smile on your face with these happy tunes",
+        song_artist1:"Put a smile on your face with these happy tunes",
         duration:"2:35"
     }
 ]
