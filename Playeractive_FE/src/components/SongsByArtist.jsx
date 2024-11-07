@@ -56,7 +56,7 @@ const SongsByArtist = () => {
     <Navbar/>
     <div className="p-4 text-white mt-16">
       <h1 className="text-2xl mb-4">Songs by Artist</h1>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-auto">
         {songs.map((track) => (
           <div key={track.id} className="bg-gray-800 p-4 rounded-md flex flex-col items-center">
             <img src={track.album.images[0]?.url} alt={track.name} className="w-full h-40 object-cover rounded-md mb-3" />

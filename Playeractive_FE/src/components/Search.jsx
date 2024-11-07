@@ -103,32 +103,37 @@ const Search = () => {
         {isLoading && <p>Loading...</p>}
 
         {/* Artists Results */}
-        <div className="mt-4">
-          <h2 className="text-xl font-bold">Artists</h2>
+        <div className="mb-4">
+          <h2 className="my-5 font-bold text-2xl">Artists</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {artists.map(artist => (
               <div
                 key={artist.id}
-                className="bg-gray-800 p-4 rounded-md flex flex-col items-center cursor-pointer"
+                className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
                 onClick={() => navigateToSongsByArtist(artist.id)}
               >
                 <img src={artist.images[0]?.url} alt={artist.name} className="w-full h-40 object-cover rounded-md mb-3" />
-                <h3 className="text-lg text-center">{artist.name}</h3>
+                <h3 className="font-bold mt-2 mb-1 text-center">{artist.name}</h3>
               </div>
             ))}
           </div>
         </div>
 
         {/* Songs Results */}
-        <div className="mt-4">
-          <h2 className="text-xl font-bold">Songs</h2>
+        <div className="mb-4">
+          <h2 className="my-5 font-bold text-2xl">Songs</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {songs.map(track => (
-              <div key={track.id} className="bg-gray-800 p-4 rounded-md flex flex-col items-center">
+              <div key={track.id} className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"  onClick={() => playWithTrack({
+                song_name: track.name,
+                song_artist: track.artists.map(artist => artist.name).join(", "),
+                preview_url: track.preview_url,
+                song_image: track.album.images[0]?.url,
+              })}>
                 <img src={track.album.images[0]?.url} alt={track.name} className="w-full h-40 object-cover rounded-md mb-3" />
-                <h3 className="text-lg text-center">{track.name}</h3>
-                <p className="text-gray-400 text-center text-sm">{track.artists.map(artist => artist.name).join(", ")}</p>
-                <button
+                <h3 className="font-bold mt-2 mb-1 text-center">{track.name}</h3>
+                <p className="text-slate-200 text-sm text-center">{track.artists.map(artist => artist.name).join(", ")}</p>
+                {/* <button
                   className="bg-blue-500 text-white py-1 px-3 rounded-md text-sm"
                   onClick={() => playWithTrack({
                     song_name: track.name,
@@ -138,25 +143,25 @@ const Search = () => {
                   })}
                 >
                   Play
-                </button>
+                </button> */}
               </div>
             ))}
           </div>
         </div>
 
         {/* Albums Results */}
-        <div className="mt-4">
-          <h2 className="text-xl font-bold">Albums</h2>
+        <div className="mb-4">
+          <h2 className="my-5 font-bold text-2xl">Albums</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {albums.map(album => (
               <div
                 key={album.id}
-                className="bg-gray-800 p-4 rounded-md flex flex-col items-center cursor-pointer"
+                className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
                 onClick={() => navigateToSongsByAlbum(album.id)}
               >
                 <img src={album.images[0]?.url} alt={album.name} className="w-full h-40 object-cover rounded-md mb-3" />
-                <h3 className="text-lg text-center">{album.name}</h3>
-                <p className="text-gray-400 text-center text-sm">{album.artists.map(artist => artist.name).join(", ")}</p>
+                <h3 className="font-bold mt-2 mb-1 text-center">{album.name}</h3>
+                <p className="text-slate-200 text-sm text-center">{album.artists.map(artist => artist.name).join(", ")}</p>
               </div>
             ))}
           </div>
