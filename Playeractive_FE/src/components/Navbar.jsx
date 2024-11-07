@@ -2,8 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
 
-const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
-const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
+const CLIENT_ID = "1cc098e6dbf94a3584082f5046b947f2";
+const CLIENT_SECRET = "873020b0be3e400690e57903e8e02953";
 
 const Navbar = () => {
   const navigate = useNavigate();
