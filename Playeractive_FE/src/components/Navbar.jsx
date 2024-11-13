@@ -118,7 +118,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex items-center justify-between p-4 bg-purple-500">
+    <nav className="flex items-center justify-between p-4">
       {/* Navigation Arrows */}
       <div className="flex items-center gap-2">
         <img
