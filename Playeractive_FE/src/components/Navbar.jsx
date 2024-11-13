@@ -1,18 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
+import { useAuthContext } from '../context/AuthContext';
 
 const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
 const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const { user } = useAuthContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
+  // Fetch Spotify access token
   useEffect(() => {
     const fetchAccessToken = async () => {
       const authParameters = {
@@ -34,62 +39,17 @@ const Navbar = () => {
 
     fetchAccessToken();
   }, []);
-  // Tự động tìm kiếm khi searchQuery thay đổi
+
+  // Auto search when searchQuery changes
   useEffect(() => {
     if (searchQuery.trim()) {
       const timer = setTimeout(() => {
-        handleSearch(); // Gọi tìm kiếm sau 550ms
-      }, 550); // Điều chỉnh thời gian nếu cần
+        handleSearch();
+      }, 550);
 
-      return () => clearTimeout(timer); // Dọn dẹp khi `searchQuery` thay đổi trước khi hết thời gian
+      return () => clearTimeout(timer);
     }
   }, [searchQuery]);
-
-  // Điều hướng đến trang tìm kiếm và truyền query qua URL
-  const handleSearch = () => {
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-    }
-  };
-
-  // Tìm kiếm bằng giọng nói
-  const handleVoiceSearch = () => {
-    if (!('webkitSpeechRecognition' in window)) {
-      alert('Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói');
-      return;
-    }
-
-    const recognition = new window.webkitSpeechRecognition();
-    recognition.lang = 'vi-VN'; // Đặt ngôn ngữ tiếng Việt
-    recognition.continuous = false; // Dừng nhận diện khi dừng nói
-    recognition.interimResults = false;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => {
-      setIsListening(false);
-      if (searchQuery) {
-        handleSearch(); // Tìm kiếm sau khi nhận diện kết thúc
-      }
-    };
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setSearchQuery(transcript); // Cập nhật searchQuery khi nhận diện giọng nói
-      console.log('Kết quả nhận diện:', transcript);
-    };
-
-    recognition.start();
-  };
-
-  const toggleDropdown = () => setDropdownOpen(!dropdownOpen);
-
-  const handleProfileClick = () => {
-    console.log('Profile clicked');
-  };
-
-  const handleLogoutClick = () => {
-    console.log('Logout clicked');
-  };
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -104,8 +64,61 @@ const Navbar = () => {
     };
   }, []);
 
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleSearch = () => {
+    if (searchQuery.trim()) {
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
+
+  const handleVoiceSearch = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói');
+      return;
+    }
+
+    const recognition = new window.webkitSpeechRecognition();
+    recognition.lang = 'vi-VN';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => {
+      setIsListening(false);
+      if (searchQuery) {
+        handleSearch();
+      }
+    };
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setSearchQuery(transcript);
+      console.log('Kết quả nhận diện:', transcript);
+    };
+
+    recognition.start();
+  };
+
+  const handleProfileClick = () => {
+    navigate("/profile");
+    setDropdownOpen(false);
+  };
+
+  const handleLogoutClick = async () => {
+    try {
+      await signOut(auth);
+      navigate('/');
+      setDropdownOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+
   return (
-    <div className="w-full flex justify-between items-center font-semibold">
+    <nav className="flex items-center justify-between p-4 bg-purple-500">
       {/* Navigation Arrows */}
       <div className="flex items-center gap-2">
         <img
@@ -128,52 +141,62 @@ const Navbar = () => {
           type="text"
           placeholder='What do you want to play'
           value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)} // Cập nhật searchQuery khi người dùng nhập
-          onKeyDown={(e) => e.key === 'Enter' && handleSearch()} // Tìm kiếm khi nhấn Enter
+          onChange={(e) => setSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           className='bg-stone-800 text-center shadow-inner text-white focus:outline-none ml-2 rounded-2xl w-[max(10vw,250px)] h-[max(2vw,35px)] hover:bg-stone-700 focus:bg-stone-700'
         />
         <img
           src={assets.search_icon}
           alt="Search"
           className="w-6 cursor-pointer"
-          onClick={handleSearch} // Tìm kiếm khi click vào biểu tượng tìm kiếm
+          onClick={handleSearch}
         />
-        <img className="w-6 cursor-pointer" onClick={handleVoiceSearch} src={assets.micro_icon} alt="" />
+        <img 
+          src={assets.micro_icon} 
+          alt="Voice Search"
+          className="w-6 cursor-pointer" 
+          onClick={handleVoiceSearch} 
+        />
         {isListening && <p>Listening...</p>}
       </div>
 
       {/* Account Controls */}
       <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-      <p
-             className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
-             onClick={() => navigate("/login")}
-        >
-         Sign In
-        </p>
-        <button
-          onClick={toggleDropdown}
-          className="bg-purple-500 text-black w-7 h-7 rounded-full flex items-center justify-center"
-        >
-          Q
-        </button>
-        {dropdownOpen && (
-          <div className="absolute right-0 mt-2 w-40 bg-white rounded-lg shadow-xl border border-gray-200 animate-fade-in">
+        {!user ? (
+          <p
+            className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
+            onClick={() => navigate("/login")}
+          >
+            Sign In
+          </p>
+        ) : (
+          <>
             <button
-              onClick={handleProfileClick}
-              className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-t-lg transition-colors duration-200"
+              onClick={toggleDropdown}
+              className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl flex items-center justify-center"
             >
-              Profile
+              {user.displayName || user.email}
             </button>
-            <button
-              onClick={handleLogoutClick}
-              className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-b-lg transition-colors duration-200"
-            >
-              Logout
-            </button>
-          </div>
+            {dropdownOpen && (
+              <div className="absolute right-0 top-10 w-40 bg-white rounded-lg shadow-xl border border-gray-200">
+                <button
+                  onClick={handleProfileClick}
+                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-t-lg transition-colors duration-200"
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={handleLogoutClick}
+                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-b-lg transition-colors duration-200"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
-    </div>
+    </nav>
   );
 };
 

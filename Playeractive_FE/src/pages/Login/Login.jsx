@@ -17,15 +17,15 @@ const Login = () => {
     try {
       if (signState === "Sign In") {
         await login(email, password);
-        navigate('/'); // Navigate to homepage on successful login
       } else {
         await signup(name, email, password);
-        setSuccess("Account created successfully. Please sign in."); // Set success message
-        setsignState("Sign In"); // Switch to "Sign In" form after successful signup
+        setSuccess("Account created successfully. Please sign in.");
+        setsignState("Sign In");
       }
+      navigate('/'); // Redirect to homepage after successful login/signup
     } catch (error) {
-      setError("Invalid email or password. Please try again."); // Set error message
-      console.error("Authentication error:", error); // Log error to console for debugging
+      setError("Invalid email or password. Please try again.");
+      console.error("Authentication error:", error);
     }
   };
 
