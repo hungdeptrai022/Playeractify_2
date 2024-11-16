@@ -17,7 +17,102 @@ const Search = () => {
   const [artists, setArtists] = useState([]);
   const [songs, setSongs] = useState([]);
   const [albums, setAlbums] = useState([]);
+  const [results, setResults] = useState({ songs: [], artists: [], albums: [] });
   const [isLoading, setIsLoading] = useState(false);
+
+
+  const detectSearchType = (query) => {
+    if (!query) return null;
+    
+    const words = query.toLowerCase().trim().split(" ");
+    
+    // Các pattern phổ biến
+    const knownArtists = [
+      'coldplay',
+      'hieuthuhai',
+      'lisa',
+      'jennie',
+      'newjeans', 
+      'đen',
+      'sơn tùng mtp',
+      'bts',
+      'jsol',
+      'd-low',
+      'colaps',
+      'codfish',
+      'mck',
+      'adele',
+      'mono',
+      // Có thể thêm nhiều nghệ sĩ khác
+    ];
+  
+    const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707',];
+    const albumPatterns = ['album', 'ep', 'deluxe', 'edition', 'collection', 'đánh đổi'];
+    
+    // Kiểm tra patterns trước
+    if (songPatterns.some(pattern => query.toLowerCase().includes(pattern))) {
+      return 'song';
+    } 
+    if (albumPatterns.some(pattern => query.toLowerCase().includes(pattern))) {
+      return 'album';
+    }
+    if (knownArtists.some(artist => query.toLowerCase().includes(artist))) {
+      return 'artist';
+    }
+
+    // Xử lý query có 1 từ
+    if (words.length === 1) {
+      const word = words[0];
+      
+      // Kiểm tra nếu từ đó là một số hoặc năm (ví dụ: "1989", "25")
+      if (/^\d+$/.test(word)) {
+        return 'album';
+      }
+      
+      // Kiểm tra nếu từ đó viết hoa hoàn toàn (ví dụ: "SOUR", "RED")
+      if (word === word.toUpperCase() && word.length > 2) {
+        return 'album';
+      }
+      
+      
+      // Mặc định là bài hát cho query 1 từ
+      return 'song';
+    }
+
+    // Xử lý query có 2 từ
+   
+    if (words.length <= 2) {
+      // Kiểm tra các điều kiện để xác định tên nghệ sĩ
+      const isArtistName = (
+        // Điều kiện 1: Mỗi từ đều bắt đầu bằng chữ hoa
+        words.every(word => word[0] === word[0].toUpperCase()) ||
+        
+        // Điều kiện 2: Từ đầu tiên là "the", "dj", "mc"
+        ['the', 'dj', 'mc'].includes(words[0]) ||
+        
+        // Điều kiện 3: Không chứa các từ thông dụng của bài hát
+        !words.some(word => ['love', 'baby', 'heart', 'night', 'day'].includes(word))
+      );
+  
+      if (isArtistName) {
+        return 'artist';
+      }
+    }
+
+    // Xử lý query có nhiều hơn 2 từ
+    if (words.length > 2) {
+      // Nếu từ cuối cùng là năm hoặc số
+      if (/^\d+$/.test(words[words.length - 1])) {
+        return 'album';
+      }
+      
+      // Mặc định là bài hát cho query dài
+      return 'song';
+    }
+
+    // Mặc định trả về song nếu không match với các rule trên
+    return 'song';
+  };
 
   // Lấy accessToken từ Spotify API khi component được mount
   useEffect(() => {
@@ -95,6 +190,19 @@ const Search = () => {
     }
   };
 
+  const searchType = detectSearchType(query); // Xác định loại tìm kiếm
+
+  useEffect(() => {
+    // Gọi API khi có từ khóa tìm kiếm
+    const fetchResults = async () => {
+      const data = await searchSpotify(query)
+      setResults(data);
+    };
+
+    if (query) {
+      fetchResults();
+    }
+  }, [query]);
   return (
     <><Navbar />
       <div className="p-4 text-white mt-16 flex flex-col items-center">
@@ -102,70 +210,260 @@ const Search = () => {
 
         {isLoading && <p>Loading...</p>}
 
-        {/* Artists Results */}
-        <div className="mb-4">
-          <h2 className="my-5 font-bold text-2xl">Artists</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {artists.map(artist => (
-              <div
-                key={artist.id}
-                className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
-                onClick={() => navigateToSongsByArtist(artist.id)}
-              >
-                <img src={artist.images[0]?.url} alt={artist.name} className="w-full h-40 object-cover rounded-md mb-3" />
-                <h3 className="font-bold mt-2 mb-1 text-center">{artist.name}</h3>
+        {searchType === 'artist' && (
+          <div>
+            <div className="mb-4">
+              <h2 className="my-5 font-bold text-2xl">Artists</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {artists.map((artist) => (
+                  <div
+                    key={artist.id}
+                    className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                    onClick={() => navigateToSongsByArtist(artist.id)}
+                  >
+                    <img
+                      src={artist.images[0]?.url}
+                      alt={artist.name}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                    />
+                    <h3 className="font-bold mt-2 mb-1 text-center">
+                      {artist.name}
+                    </h3>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="mb-4">
+              <h2 className="my-5 font-bold text-2xl">Songs</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {songs.map((track) => (
+                  <div
+                    key={track.id}
+                    className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                    onClick={() =>
+                      playWithTrack({
+                        song_name: track.name,
+                        song_artist: track.artists
+                          .map((artist) => artist.name)
+                          .join(", "),
+                        preview_url: track.preview_url,
+                        song_image: track.album.images[0]?.url,
+                      })
+                    }
+                  >
+                    <img
+                      src={track.album.images[0]?.url}
+                      alt={track.name}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                    />
+                    <h3 className="font-bold mt-2 mb-1 text-center">
+                      {track.name}
+                    </h3>
+                    <p className="text-slate-200 text-sm text-center">
+                      {track.artists.map((artist) => artist.name).join(", ")}
+                    </p>
+                  
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <h2 className="my-5 font-bold text-2xl">Albums</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {albums.map((album) => (
+                  <div
+                    key={album.id}
+                    className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                    onClick={() => navigateToSongsByAlbum(album.id)}
+                  >
+                    <img
+                      src={album.images[0]?.url}
+                      alt={album.name}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                    />
+                    <h3 className="font-bold mt-2 mb-1 text-center">
+                      {album.name}
+                    </h3>
+                    <p className="text-slate-200 text-sm text-center">
+                      {album.artists.map((artist) => artist.name).join(", ")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
-        </div>
+        )} 
 
-        {/* Songs Results */}
-        <div className="mb-4">
-          <h2 className="my-5 font-bold text-2xl">Songs</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {songs.map(track => (
-              <div key={track.id} className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"  onClick={() => playWithTrack({
-                song_name: track.name,
-                song_artist: track.artists.map(artist => artist.name).join(", "),
-                preview_url: track.preview_url,
-                song_image: track.album.images[0]?.url,
-              })}>
-                <img src={track.album.images[0]?.url} alt={track.name} className="w-full h-40 object-cover rounded-md mb-3" />
-                <h3 className="font-bold mt-2 mb-1 text-center">{track.name}</h3>
-                <p className="text-slate-200 text-sm text-center">{track.artists.map(artist => artist.name).join(", ")}</p>
-                {/* <button
-                  className="bg-blue-500 text-white py-1 px-3 rounded-md text-sm"
-                  onClick={() => playWithTrack({
-                    song_name: track.name,
-                    song_artist: track.artists.map(artist => artist.name).join(", "),
-                    preview_url: track.preview_url,
-                    song_image: track.album.images[0]?.url,
-                  })}
+        {/* Song Results */}
+        {searchType === 'song' && (
+          <div>
+            <div className="mb-4">
+            <h2 className="my-5 font-bold text-2xl">Songs</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {songs.map((track) => (
+                <div
+                  key={track.id}
+                  className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                  onClick={() =>
+                    playWithTrack({
+                      song_name: track.name,
+                      song_artist: track.artists
+                        .map((artist) => artist.name)
+                        .join(", "),
+                      preview_url: track.preview_url,
+                      song_image: track.album.images[0]?.url,
+                    })
+                  }
                 >
-                  Play
-                </button> */}
-              </div>
-            ))}
+                  <img
+                    src={track.album.images[0]?.url}
+                    alt={track.name}
+                    className="w-full h-40 object-cover rounded-md mb-3"
+                  />
+                  <h3 className="font-bold mt-2 mb-1 text-center">
+                    {track.name}
+                  </h3>
+                  <p className="text-slate-200 text-sm text-center">
+                    {track.artists.map((artist) => artist.name).join(", ")}
+                  </p>
+                 
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mb-4">
+            <h2 className="my-5 font-bold text-2xl">Artists</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {artists.map((artist) => (
+                <div
+                  key={artist.id}
+                  className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                  onClick={() => navigateToSongsByArtist(artist.id)}
+                >
+                  <img
+                    src={artist.images[0]?.url}
+                    alt={artist.name}
+                    className="w-full h-40 object-cover rounded-md mb-3"
+                  />
+                  <h3 className="font-bold mt-2 mb-1 text-center">
+                    {artist.name}
+                  </h3>
+                </div>
+              ))}
+            </div>
+          </div>
+        
+          <div className="mb-4">
+            <h2 className="my-5 font-bold text-2xl">Albums</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {albums.map((album) => (
+                <div
+                  key={album.id}
+                  className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                  onClick={() => navigateToSongsByAlbum(album.id)}
+                >
+                  <img
+                    src={album.images[0]?.url}
+                    alt={album.name}
+                    className="w-full h-40 object-cover rounded-md mb-3"
+                  />
+                  <h3 className="font-bold mt-2 mb-1 text-center">
+                    {album.name}
+                  </h3>
+                  <p className="text-slate-200 text-sm text-center">
+                    {album.artists.map((artist) => artist.name).join(", ")}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* Albums Results */}
-        <div className="mb-4">
-          <h2 className="my-5 font-bold text-2xl">Albums</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-            {albums.map(album => (
-              <div
-                key={album.id}
-                className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
-                onClick={() => navigateToSongsByAlbum(album.id)}
-              >
-                <img src={album.images[0]?.url} alt={album.name} className="w-full h-40 object-cover rounded-md mb-3" />
-                <h3 className="font-bold mt-2 mb-1 text-center">{album.name}</h3>
-                <p className="text-slate-200 text-sm text-center">{album.artists.map(artist => artist.name).join(", ")}</p>
+        )} 
+        {/*Albums Results */}
+        {searchType === 'album' && (
+          <div>
+            <div className="mb-4">
+              <h2 className="my-5 font-bold text-2xl">Albums</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {albums.map((album) => (
+                  <div
+                    key={album.id}
+                    className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                    onClick={() => navigateToSongsByAlbum(album.id)}
+                  >
+                    <img
+                      src={album.images[0]?.url}
+                      alt={album.name}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                    />
+                    <h3 className="font-bold mt-2 mb-1 text-center">
+                      {album.name}
+                    </h3>
+                    <p className="text-slate-200 text-sm text-center">
+                      {album.artists.map((artist) => artist.name).join(", ")}
+                    </p>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            <div className="mb-4">
+              <h2 className="my-5 font-bold text-2xl">Artists</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {artists.map((artist) => (
+                  <div
+                    key={artist.id}
+                    className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                    onClick={() => navigateToSongsByArtist(artist.id)}
+                  >
+                    <img
+                      src={artist.images[0]?.url}
+                      alt={artist.name}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                    />
+                    <h3 className="font-bold mt-2 mb-1 text-center">
+                      {artist.name}
+                    </h3>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="mb-4">
+              <h2 className="my-5 font-bold text-2xl">Songs</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {songs.map((track) => (
+                  <div
+                    key={track.id}
+                    className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                    onClick={() =>
+                      playWithTrack({
+                        song_name: track.name,
+                        song_artist: track.artists
+                          .map((artist) => artist.name)
+                          .join(", "),
+                        preview_url: track.preview_url,
+                        song_image: track.album.images[0]?.url,
+                      })
+                    }
+                  >
+                    <img
+                      src={track.album.images[0]?.url}
+                      alt={track.name}
+                      className="w-full h-40 object-cover rounded-md mb-3"
+                    />
+                    <h3 className="font-bold mt-2 mb-1 text-center">
+                      {track.name}
+                    </h3>
+                    <p className="text-slate-200 text-sm text-center">
+                      {track.artists.map((artist) => artist.name).join(", ")}
+                    </p>
+                  
+                  </div>
+                ))}
+              </div>
+            </div>
+            
           </div>
-        </div>
+        )} 
       </div>
     </>
   );
