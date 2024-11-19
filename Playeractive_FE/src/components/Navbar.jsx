@@ -10,7 +10,7 @@ const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user } = useAuthContext();
+  const { user, userData } = useAuthContext(); // Sử dụng `userData
   const [searchQuery, setSearchQuery] = useState('');
   const [accessToken, setAccessToken] = useState('');
   const [isListening, setIsListening] = useState(false);
@@ -161,41 +161,44 @@ const Navbar = () => {
       </div>
 
       {/* Account Controls */}
-      <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-        {!user ? (
-          <p
-            className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
-            onClick={() => navigate("/login")}
+<div className="flex items-center gap-4 relative" ref={dropdownRef}>
+  {!user ? (
+    <p
+      className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
+      onClick={() => navigate("/login")}
+    >
+      Sign In
+    </p>
+  ) : (
+    <>
+      {/* Hiển thị Welcome và nút dropdown */}
+      <p className="text-white text-[15px]">Welcome, {userData?.name || "User"}</p>
+      <button
+        onClick={toggleDropdown}
+        className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl flex items-center justify-center"
+      >
+        {userData?.name?.charAt(0).toUpperCase() || "U"}
+      </button>
+      {dropdownOpen && (
+        <div className="absolute right-0 top-10 w-40 bg-white rounded-lg shadow-xl border border-gray-200">
+          <button
+            onClick={handleProfileClick}
+            className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-t-lg transition-colors duration-200"
           >
-            Sign In
-          </p>
-        ) : (
-          <>
-            <button
-              onClick={toggleDropdown}
-              className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl flex items-center justify-center"
-            >
-              {user.displayName || user.email}
-            </button>
-            {dropdownOpen && (
-              <div className="absolute right-0 top-10 w-40 bg-white rounded-lg shadow-xl border border-gray-200">
-                <button
-                  onClick={handleProfileClick}
-                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-t-lg transition-colors duration-200"
-                >
-                  Profile
-                </button>
-                <button
-                  onClick={handleLogoutClick}
-                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-b-lg transition-colors duration-200"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </>
-        )}
-      </div>
+            Profile
+          </button>
+          <button
+            onClick={handleLogoutClick}
+            className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-b-lg transition-colors duration-200"
+          >
+            Logout
+          </button>
+        </div>
+      )}
+    </>
+  )}
+</div>
+
     </nav>
   );
 };

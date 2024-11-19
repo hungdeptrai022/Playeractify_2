@@ -15,14 +15,25 @@ const Login = () => {
   const user_auth = async (event) => {
     event.preventDefault();
     try {
+      setError(null); // Clear previous errors
+      setSuccess(null); // Clear previous success message
+
       if (signState === "Sign In") {
         await login(email, password);
+        navigate('/'); // Redirect to homepage after successful login
       } else {
+        // Validate that the name is not empty
+        if (!name.trim()) {
+          setError("Name is required for Sign Up.");
+          return;
+        }
         await signup(name, email, password);
         setSuccess("Account created successfully. Please sign in.");
-        setsignState("Sign In");
+        setsignState("Sign In"); // Switch to Sign In state after successful signup
+        setName(""); // Reset the name field
+        setEmail(""); // Reset the email field
+        setPassword(""); // Reset the password field
       }
-      navigate('/'); // Redirect to homepage after successful login/signup
     } catch (error) {
       setError("Invalid email or password. Please try again.");
       console.error("Authentication error:", error);

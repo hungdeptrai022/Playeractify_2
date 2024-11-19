@@ -2,6 +2,7 @@
 import { initializeApp } from "firebase/app";
 import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
 import { addDoc, collection, getFirestore } from "firebase/firestore";
+import { setDoc, doc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDv4ZohABfYwSX7R-2mVLpidVXLbV3UGMc",
@@ -20,7 +21,8 @@ const signup = async (name, email, password) => {
   try {
     const res = await createUserWithEmailAndPassword(auth, email, password);
     const user = res.user;
-    await addDoc(collection(db, "user"), {
+    // Sử dụng `setDoc` để lưu thông tin người dùng với UID làm ID tài liệu
+    await setDoc(doc(db, "user", user.uid), {
       uid: user.uid,
       name,
       authProvider: "local",
