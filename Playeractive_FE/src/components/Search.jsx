@@ -5,6 +5,7 @@ import { PlayerContext } from "../context/PlayerContext";
 
 const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
 const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
+const GENIUS_ACCESS_TOKEN = "gmqn4PfceZZMHF93VnuRff3_sThC4b10VW0-HlprwioeI2EgvyG4j5o4yHdb3BmH";
 
 const Search = () => {
   const navigate = useNavigate();
@@ -19,6 +20,10 @@ const Search = () => {
   const [albums, setAlbums] = useState([]);
   const [results, setResults] = useState({ songs: [], artists: [], albums: [] });
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedLyrics, setSelectedLyrics] = useState(null);
+  const [isSearching, setIsSearching] = useState(false);
+  const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
+  
 
 
   const detectSearchType = (query) => {
@@ -43,10 +48,12 @@ const Search = () => {
       'mck',
       'adele',
       'mono',
+      'kda',
+      'vũ',
       // Có thể thêm nhiều nghệ sĩ khác
     ];
   
-    const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707',];
+    const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ'];
     const albumPatterns = ['album', 'ep', 'deluxe', 'edition', 'collection', 'đánh đổi'];
     
     // Kiểm tra patterns trước
@@ -110,6 +117,13 @@ const Search = () => {
       return 'song';
     }
 
+    // Thêm pattern cho lyrics
+    const lyricsPattern = /lyrics:|loi:|lời:/i;
+    
+    if (lyricsPattern.test(query)) {
+      return 'lyrics';
+    }
+
     // Mặc định trả về song nếu không match với các rule trên
     return 'song';
   };
@@ -145,33 +159,93 @@ const Search = () => {
     setQuery(new URLSearchParams(location.search).get("q"));
   }, [location.search]);
 
+  const searchGenius = async (query) => {
+    try {
+      const response = await fetch(`https://api.genius.com/search?q=${encodeURIComponent(query)}`, {
+        headers: {
+          'Authorization': `Bearer ${GENIUS_ACCESS_TOKEN}`
+        }
+      });
+      const data = await response.json();
+      return data.response.hits;
+    } catch (error) {
+      console.error("Error searching Genius:", error);
+      return [];
+    }
+  };
+
+  const matchSpotifyWithGenius = async (geniusResults) => {
+    const matchedTracks = await Promise.all(
+      geniusResults.map(async (hit) => {
+        const songTitle = hit.result.title;
+        const artistName = hit.result.primary_artist.name;
+        
+        // Tìm bài hát tương ứng trên Spotify
+        const response = await fetch(
+          `https://api.spotify.com/v1/search?q=${encodeURIComponent(`track:${songTitle} artist:${artistName}`)}&type=track&limit=1`,
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`
+            }
+          }
+        );
+        const data = await response.json();
+        
+        if (data.tracks.items.length > 0) {
+          return {
+            ...data.tracks.items[0],
+            geniusId: hit.result.id,
+            geniusUrl: hit.result.url
+          };
+        }
+        return null;
+      })
+    );
+    
+    return matchedTracks.filter(track => track !== null);
+  };
+
   // Tìm kiếm Spotify khi query hoặc accessToken thay đổi
   useEffect(() => {
     const searchSpotify = async () => {
       if (!accessToken || !query) return;
+      
+      setIsSearching(true);
+      const searchType = detectSearchType(query);
+      const cleanQuery = query.replace(/lyrics:|loi:|lời:/i, '').trim();
 
       try {
-        const response = await fetch(
-         `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=artist,track,album&limit=30`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
+        if (searchType === 'lyrics') {
+          const geniusResults = await searchGenius(cleanQuery);
+          const matchedTracks = await matchSpotifyWithGenius(geniusResults);
+          
+          setSongs(matchedTracks);
+          setArtists([]);
+          setAlbums([]);
+        } else {
+          const response = await fetch(
+           `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=artist,track,album&limit=30`,
+            {
+              headers: {
+                Authorization: `Bearer ${accessToken}`,
+              },
+            }
+          );
 
-        const data = await response.json();
-        setArtists(data.artists?.items || []);
-        setSongs(data.tracks?.items || []);
-        setAlbums(data.albums?.items || []);
+          const data = await response.json();
+          setArtists(data.artists?.items || []);
+          setSongs(data.tracks?.items || []);
+          setAlbums(data.albums?.items || []);
+        }
       } catch (error) {
-        console.error("Error fetching search results:", error);
+        console.error("Error searching:", error);
       } finally {
-        setIsLoading(false);
+        setIsSearching(false);
       }
     };
 
-    searchSpotify();
+    const timeoutId = setTimeout(searchSpotify, 500);
+    return () => clearTimeout(timeoutId);
   }, [accessToken, query]);
 
   const navigateToSongsByArtist = (artistId) => {
@@ -203,6 +277,61 @@ const Search = () => {
       fetchResults();
     }
   }, [query]);
+
+  // Thêm component hiển thị lyrics
+  const LyricsModal = ({ geniusUrl, isOpen, onClose }) => {
+    const [lyrics, setLyrics] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    
+    useEffect(() => {
+      const fetchLyrics = async () => {
+        if (!geniusUrl) return;
+        
+        try {
+          setIsLoading(true);
+          const response = await fetch(`/api/lyrics?url=${encodeURIComponent(geniusUrl)}`);
+          const data = await response.json();
+          setLyrics(data.lyrics);
+        } catch (error) {
+          console.error("Error fetching lyrics:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      
+      if (isOpen) {
+        fetchLyrics();
+      }
+    }, [geniusUrl, isOpen]);
+
+    if (!isOpen) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+          <div className="flex justify-end">
+            <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+              <span className="sr-only">Close</span>
+              <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="mt-4">
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                <span className="ml-3 text-gray-600">Đang tải lyrics...</span>
+              </div>
+            ) : (
+              <div className="whitespace-pre-wrap">{lyrics}</div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <><Navbar />
       <div className="p-4 text-white mt-16 flex flex-col items-center">
@@ -262,7 +391,14 @@ const Search = () => {
                     <p className="text-slate-200 text-sm text-center">
                       {track.artists.map((artist) => artist.name).join(", ")}
                     </p>
-                  
+                    {track.geniusUrl && (
+                      <button
+                        onClick={() => setSelectedLyrics(track.geniusUrl)}
+                        className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm"
+                      >
+                        Xem lyrics
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -326,7 +462,14 @@ const Search = () => {
                   <p className="text-slate-200 text-sm text-center">
                     {track.artists.map((artist) => artist.name).join(", ")}
                   </p>
-                 
+                  {track.geniusUrl && (
+                    <button
+                      onClick={() => setSelectedLyrics(track.geniusUrl)}
+                      className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm"
+                    >
+                      Xem lyrics
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
@@ -464,6 +607,11 @@ const Search = () => {
             
           </div>
         )} 
+        <LyricsModal
+          geniusUrl={selectedLyrics}
+          isOpen={!!selectedLyrics}
+          onClose={() => setSelectedLyrics(null)}
+        />
       </div>
     </>
   );
