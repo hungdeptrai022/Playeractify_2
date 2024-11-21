@@ -44,6 +44,7 @@ import song1 from  './song1.mp3'
 import song2 from  './song2.mp3'
 import song3 from  './song3.mp3'
 import object from './Hiss, WING - Objet.mp3'
+import qrcode from './qrcode.png'
 
 
 export const assets = {
@@ -72,7 +73,8 @@ export const assets = {
     spotify_logo,
     clock_icon,
     music,
-    micro_icon
+    micro_icon,
+    qrcode
 }
 
 export const albumsData = [

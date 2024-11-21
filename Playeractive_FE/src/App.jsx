@@ -5,7 +5,8 @@ import { BrowserRouter as Router, Route, Routes,useNavigate } from 'react-router
 import Home from './pages/Home/Home'
 import Login from './pages/Login/Login'
 import Callback from './pages/Callback/Callbak'
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext'
+import Userprofile from './pages/Userprofile/Userprofile'
 
 const App = () => {
   return (
@@ -14,6 +15,7 @@ const App = () => {
           <Route path='*' element ={<Home/>}/>
           <Route path='/login' element ={<Login/>}/>
           <Route path='/callback' element={<Callback />} />
+          <Route path='/Userprofile' element={<Userprofile />} />
         </Routes>     
     </AuthProvider>
     
