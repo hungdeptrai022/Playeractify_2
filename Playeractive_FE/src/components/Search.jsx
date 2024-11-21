@@ -27,10 +27,25 @@ const Search = () => {
 
 
   const detectSearchType = (query) => {
-    if (!query) return null;
+    const lyricsPattern = /lyrics:|loi:|lời:/i;
+    // const popularKeywords = ['hay', 'tốt nhất', 'nổi tiếng', 'top', 'hit'];
+
+    if (lyricsPattern.test(query)) {
+      return 'lyrics';
+    }
+    
     
     const words = query.toLowerCase().trim().split(" ");
-    
+    // if (popularKeywords.some(keyword => query.toLowerCase().includes(keyword))) {
+    //   return 'popular';
+    // }
+
+    const artistPatternVN = /các bài hát hay của (.+)/i;
+    const artistPatternEN = /songs by (.+)/i;
+    if (artistPatternVN.test(query) || artistPatternEN.test(query))  {
+      return 'top-tracks';
+    }
+
     // Các pattern phổ biến
     const knownArtists = [
       'coldplay',
@@ -118,7 +133,7 @@ const Search = () => {
     }
 
     // Thêm pattern cho lyrics
-    const lyricsPattern = /lyrics:|loi:|lời:/i;
+    
     
     if (lyricsPattern.test(query)) {
       return 'lyrics';
@@ -150,7 +165,7 @@ const Search = () => {
         console.error("Error fetching access token:", error);
       }
     };
-
+    
     fetchAccessToken();
   }, []);
 
@@ -213,6 +228,8 @@ const Search = () => {
       setIsSearching(true);
       const searchType = detectSearchType(query);
       const cleanQuery = query.replace(/lyrics:|loi:|lời:/i, '').trim();
+      console.log("Query:", query);
+      console.log("Search Type:", searchType);
 
       try {
         if (searchType === 'lyrics') {
@@ -222,6 +239,40 @@ const Search = () => {
           setSongs(matchedTracks);
           setArtists([]);
           setAlbums([]);
+        } else if (searchType === 'top-tracks') {
+          const artistMatchVN = query.match(/các bài hát hay của (.+)/i);
+          const artistMatchEN = query.match(/songs by (.+)/i);
+          const artistName = artistMatchVN ? artistMatchVN[1].trim() : artistMatchEN ? artistMatchEN[1].trim() : null;
+          if (artistName) {
+            
+            // Tìm kiếm nghệ sĩ trên Spotify
+            const artistResponse = await fetch(
+              `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`
+                }
+              }
+            );
+            const artistData = await artistResponse.json();
+            if (artistData.artists.items.length > 0) {
+              const artistId = artistData.artists.items[0].id;
+              // Lấy top tracks của nghệ sĩ
+              const topTracksResponse = await fetch(
+                `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`
+                  }
+                }
+              );
+              const topTracksData = await topTracksResponse.json();
+              setSongs(topTracksData.tracks);
+              setArtists([]);
+              setAlbums([]);
+             
+            }
+          }
         } else {
           const response = await fetch(
            `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=artist,track,album&limit=30`,
@@ -338,6 +389,53 @@ const Search = () => {
         <h1 className="text-2xl mb-4">Search Results for "{query}"</h1>
 
         {isLoading && <p>Loading...</p>}
+        
+
+        {searchType === 'top-tracks' && (
+          <div>
+            <div className="mb-4">
+            <h2 className="my-5 font-bold text-2xl">Songs</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+              {songs.map((track) => (
+                <div
+                  key={track.id}
+                  className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                  onClick={() =>
+                    playWithTrack({
+                      song_name: track.name,
+                      song_artist: track.artists
+                        .map((artist) => artist.name)
+                        .join(", "),
+                      preview_url: track.preview_url,
+                      song_image: track.album.images[0]?.url,
+                    })
+                  }
+                >
+                  <img
+                    src={track.album.images[0]?.url}
+                    alt={track.name}
+                    className="w-full h-40 object-cover rounded-md mb-3"
+                  />
+                  <h3 className="font-bold mt-2 mb-1 text-center">
+                    {track.name}
+                  </h3>
+                  <p className="text-slate-200 text-sm text-center">
+                    {track.artists.map((artist) => artist.name).join(", ")}
+                  </p>
+                  {track.geniusUrl && (
+                    <button
+                      onClick={() => setSelectedLyrics(track.geniusUrl)}
+                      className="px-3 py-1 bg-purple-600 text-white rounded-full text-sm"
+                    >
+                      Xem lyrics
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+          </div>
+        )}
 
         {searchType === 'artist' && (
           <div>
