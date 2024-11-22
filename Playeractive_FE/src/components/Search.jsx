@@ -36,9 +36,7 @@ const Search = () => {
     
     
     const words = query.toLowerCase().trim().split(" ");
-    // if (popularKeywords.some(keyword => query.toLowerCase().includes(keyword))) {
-    //   return 'popular';
-    // }
+    
 
     const artistPatternVN = /các bài hát hay của (.+)/i;
     const artistPatternEN = /songs by (.+)/i;
@@ -53,7 +51,6 @@ const Search = () => {
       'lisa',
       'jennie',
       'newjeans', 
-      'đen',
       'sơn tùng mtp',
       'bts',
       'jsol',
@@ -65,10 +62,13 @@ const Search = () => {
       'mono',
       'kda',
       'vũ',
-      // Có thể thêm nhiều nghệ sĩ khác
+      'vu',
+      'robber',
+      'madihu',
+      'hiếu thứ hai'
     ];
   
-    const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ'];
+    const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ', 'trốn tìm'];
     const albumPatterns = ['album', 'ep', 'deluxe', 'edition', 'collection', 'đánh đổi'];
     
     // Kiểm tra patterns trước

@@ -107,6 +107,7 @@ const SongsByArtist = () => {
       <p>Duration</p>
     </div>
     <hr />
+    
     {songs.map((track, index) => (
       <div
         key={track.id}
@@ -120,9 +121,9 @@ const SongsByArtist = () => {
             song_image: track.album.images[0]?.url,
           })
         }
-        className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
+        className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"  
       >
-        <p className="text-white">
+        <p className="text-white truncate hover:text-clip">
           <b className="mr-4 text-[#a7a7a7]">{index + 1}</b>
           <img
             className="inline w-10 mr-5"
@@ -134,7 +135,7 @@ const SongsByArtist = () => {
           />
           {track.name}
         </p>
-        <p className="text-[15px]">{track.album.name}</p>
+        <p className="text-[15px] truncate hover:text-clip">{track.album.name}</p>
         <p className="text-[15px] hidden sm:block">{track.album.release_date}</p>
         <p className="text-[15px]">{formatDuration(track.duration_ms)}</p>
       </div>

@@ -116,6 +116,7 @@ const SongsByAlbum = () => {
         
       </div>
       <hr />
+     
       {songs.map((track, index) => (
         <div
           key={track.id}
@@ -131,7 +132,7 @@ const SongsByAlbum = () => {
           }
           className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
         >
-          <p className="text-white">
+          <p className="text-white truncate hover:text-clip">
             <b className="mr-4 text-[#a7a7a7]">{index + 1}</b>
             <img
               className="inline w-10 mr-5"
