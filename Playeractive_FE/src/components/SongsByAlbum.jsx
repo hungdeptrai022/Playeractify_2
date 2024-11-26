@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import { useParams } from "react-router-dom";
 import Navbar from "./Navbar";
 import { PlayerContext } from "../context/PlayerContext";
-
+import { useAlbumColor } from '../hooks/useAlbumColor'
 
 const SongsByAlbum = () => {
   const { albumId } = useParams(); // Lấy albumId từ URL
@@ -10,6 +10,7 @@ const SongsByAlbum = () => {
   const [accessToken, setAccessToken] = useState("");
   const { playWithTrack } = useContext(PlayerContext);
   const [albumInfo, setAlbumInfo] = useState(null); 
+  const { colors, loading } = useAlbumColor(albumInfo?.images?.[0]?.url);
   useEffect(() => {
     const fetchAccessToken = async () => {  
       const authParameters = {
@@ -85,71 +86,89 @@ const SongsByAlbum = () => {
     const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
+  
   return (
-    <>
-      <Navbar />
-      
+    <div 
+      style={{ 
+        background: loading 
+          ? 'rgb(18, 18, 18)' 
+          : `linear-gradient(180deg, 
+              ${colors?.dominant || 'rgb(18, 18, 18)'} 0%, 
+              ${colors?.darkMuted || 'rgb(18, 18, 18)'} 100%)`
+      }}
+      className="min-h-screen relative"
+    >
+      <div 
+        className="absolute inset-0"
+        style={{
+          background: 'rgba(0, 0, 0, 0.3)'
+        }}
+      />
 
-      <div className="mt-10 flex gap-8 flex-col md:flex-row md:items-end">
-        <img className="w-48 rounded" src={albumInfo?.images[0]?.url} alt="" />
-        <div className="flex flex-col">
-          <p>Albums</p>
-          <h2 className="text-5xl font-bold mb-4 md:text-7xl">
-            {albumInfo?.name}
-          </h2>
-          <h4>{albumInfo?.artists.map((artist) => artist.name).join(", ")}</h4>
-          <p className="mt-1">
-             <b>{songs.length} Songs </b>
-            
-          </p>
-          <p className="mt-1">Release Date: {albumInfo?.release_date}</p>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-3 sm:grid-cols-4 mt-10 mb-4 pl-2 text-[#a7a7a7]">
-        <p>
-          <b className="mr-4">#</b>Title
-        </p>
-     
-        <p className="hidden sm:block">Date Released</p>
-        <p>Duration</p>
+      <div className="relative z-10">
+        <Navbar />
         
-      </div>
-      <hr />
-     
-      {songs.map((track, index) => (
-        <div
-          key={track.id}
-          onClick={() =>
-            playWithTrack({
-              song_name: track.name,
-              song_artist: track.artists
-                .map((artist) => artist.name)
-                .join(", "),
-              preview_url: track.preview_url,
-              song_image: albumInfo?.images[0]?.url,
-            })
-          }
-          className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center text-[#a7a7a7] hover:bg-[#ffffff2b] cursor-pointer"
-        >
-          <p className="text-white truncate hover:text-clip">
-            <b className="mr-4 text-[#a7a7a7]">{index + 1}</b>
-            <img
-              className="inline w-10 mr-5"
-              src={
-                albumInfo?.images?.[0]?.url ||
-                "https://via.placeholder.com/150"
-              }
-              alt=""
-            />
-            {track.name}
-          </p>
-          
-          <p className="text-[15px] hidden sm:block">{albumInfo?.release_date} </p>
-          <p> <p className="text-[15px]">{formatDuration(track.duration_ms)}</p></p>
+        <div className="px-8 pt-20">
+          <div className="mt-10 flex gap-8 flex-col md:flex-row md:items-end">
+            {albumInfo?.images?.[0]?.url && (
+              <img 
+                className="w-48 h-48 rounded shadow-xl" 
+                src={albumInfo.images[0].url} 
+                alt={albumInfo.name} 
+              />
+            )}
+            <div className="flex flex-col">
+              <p className="text-white opacity-80">Album</p>
+              <h2 className="text-5xl font-bold mb-4 md:text-7xl text-white">
+                {albumInfo?.name}
+              </h2>
+              <div className="flex items-center gap-2 text-white opacity-80">
+                <h4>{albumInfo?.artists?.map(artist => artist.name).join(", ")}</h4>
+                <span>•</span>
+                <p>{songs.length} Songs</p>
+                <span>•</span>
+                <p>Release Date: {albumInfo?.release_date}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8">
+            <div className="grid grid-cols-3 sm:grid-cols-4 py-4 px-2 text-[#a7a7a7] border-b border-[#ffffff1a]">
+              <p><b className="mr-4">#</b>Title</p>
+              <p className="hidden sm:block">Date Released</p>
+              <p>Duration</p>
+            </div>
+
+            {songs.map((track, index) => (
+              <div
+                key={track.id}
+                onClick={() => playWithTrack({
+                  song_name: track.name,
+                  song_artist: track.artists.map(artist => artist.name).join(", "),
+                  preview_url: track.preview_url,
+                  song_image: albumInfo?.images[0]?.url,
+                })}
+                className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center 
+                           text-[#a7a7a7] hover:bg-[#ffffff1a] cursor-pointer 
+                           transition-colors duration-200"
+              >
+                <div className="flex items-center text-white">
+                  <span className="w-8 text-[#a7a7a7]">{index + 1}</span>
+                  <img
+                    className="w-10 h-10 mr-4"
+                    src={albumInfo?.images?.[0]?.url || "https://via.placeholder.com/150"}
+                    alt=""
+                  />
+                  <span className="truncate">{track.name}</span>
+                </div>
+                <p className="text-[15px] hidden sm:block">{albumInfo?.release_date}</p>
+                <p className="text-[15px]">{formatDuration(track.duration_ms)}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      ))}
-    </>
+      </div>
+    </div>
   );
 };
 

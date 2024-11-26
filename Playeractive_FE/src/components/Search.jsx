@@ -65,7 +65,9 @@ const Search = () => {
       'vu',
       'robber',
       'madihu',
-      'hiếu thứ hai'
+      'hiếu thứ hai',
+      'obito',
+      'g-dragon'
     ];
   
     const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ', 'trốn tìm'];
