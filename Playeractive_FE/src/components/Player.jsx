@@ -1,7 +1,7 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { assets } from "../assets/assets";
 import { PlayerContext } from "../context/PlayerContext";
-
+  
 const Player = () => {
   const {
     track,
@@ -11,23 +11,55 @@ const Player = () => {
     play,
     pause,
     time,
+    setTime,
     previous,
     next,
     seekSong,
   } = useContext(PlayerContext);
+
+  // Cập nhật thanh seekBar khi bài hát phát
+  useEffect(() => {
+    let interval;
+    if (playStatus) {
+      interval = setInterval(() => {
+        // Giả định `track.currentTime` được cập nhật từ PlayerContext
+        const { currentTime, duration } = track;
+        if (currentTime && duration) {
+          setTime({
+            currentTime: {
+              minute: Math.floor(currentTime / 60),
+              second: Math.floor(currentTime % 60),
+            },
+            totalTime: {
+              minute: Math.floor(duration / 60),
+              second: Math.floor(duration % 60),
+            },
+          });
+
+          // Cập nhật độ dài seekBar
+          const percentage = (currentTime / duration) * 100;
+          if (seekBar.current) {
+            seekBar.current.style.width = `${percentage}%`;
+          }
+        }
+      }, 1000);
+    }
+    return () => clearInterval(interval); // Dọn dẹp interval khi playStatus thay đổi
+  }, [playStatus, track, setTime, seekBar]);
+
   return (
     <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">
       <div className="hidden lg:flex items-center gap-4">
-        <img className="w-12" src={track.song_image} alt="" />
+        <img className="w-12" src={track?.song_image} alt="" />
         <div>
           <h3 className="font-bold mt-2 mb-1 r w-[250px] group overflow-hidden cursor-pointer whitespace-nowrap">
             <span className="block group-hover:animate-text-slide">
-              {track.song_name}
+              {track?.song_name || "No song playing"}
             </span>
           </h3>
-          <p className="text-slate-200 text-sm  group overflow-hidden cursor-pointer w-[250px] whitespace-nowrap">
+          <p className="text-slate-200 text-sm group overflow-hidden cursor-pointer w-[250px] whitespace-nowrap">
             <span className="block group-hover:animate-text-slide">
-              {track.song_artist}
+              {track?.song_artist || "Unknown artist"}
             </span>
           </p>
         </div>
@@ -45,7 +77,6 @@ const Player = () => {
             src={assets.prev_icon}
             alt=""
           />
-
           {playStatus ? (
             <img
               onClick={pause}
@@ -61,7 +92,6 @@ const Player = () => {
               alt=""
             />
           )}
-
           <img
             onClick={next}
             className="w-4 cursor-pointer"
@@ -85,7 +115,7 @@ const Player = () => {
             />
           </div>
           <p>
-            {time.totalTime.minute} : {time.totalTime.second}{" "}
+            {time.totalTime.minute} : {time.totalTime.second}
           </p>
         </div>
       </div>

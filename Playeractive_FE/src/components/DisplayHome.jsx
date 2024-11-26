@@ -1,10 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react'
 import Navbar from './Navbar'
 import { useNavigate } from "react-router-dom";
-import { albumsData } from '../assets/assets'
-// import AlbumItem from './AlbumItem'
-// import { songsData } from '../assets/assets'
-import SongItem from './SongItem'
 import { PlayerContext } from '../context/PlayerContext'
 
 

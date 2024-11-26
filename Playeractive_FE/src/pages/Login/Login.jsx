@@ -1,9 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import './Login.css';
 import { login, signup } from '../../firebase';
 import { useNavigate } from 'react-router-dom';
+import { PlayerContext } from '../../context/PlayerContext';
+
 
 const Login = () => {
+  const { updateUserState } = useContext(PlayerContext);
+
+
   const [signState, setsignState] = useState("Sign In");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -20,19 +25,19 @@ const Login = () => {
 
       if (signState === "Sign In") {
         await login(email, password);
-        navigate('/'); // Redirect to homepage after successful login
+        updateUserState(email); // Cập nhật email người dùng sau khi đăng nhập
+        navigate('/'); // Điều hướng đến trang chủ
       } else {
-        // Validate that the name is not empty
         if (!name.trim()) {
           setError("Name is required for Sign Up.");
           return;
         }
         await signup(name, email, password);
         setSuccess("Account created successfully. Please sign in.");
-        setsignState("Sign In"); // Switch to Sign In state after successful signup
-        setName(""); // Reset the name field
-        setEmail(""); // Reset the email field
-        setPassword(""); // Reset the password field
+        setsignState("Sign In"); // Chuyển về trạng thái đăng nhập
+        setName("");
+        setEmail("");
+        setPassword("");
       }
     } catch (error) {
       setError("Invalid email or password. Please try again.");
