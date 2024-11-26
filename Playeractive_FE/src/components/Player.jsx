@@ -15,15 +15,17 @@ const Player = () => {
     previous,
     next,
     seekSong,
+    audioRef,
   } = useContext(PlayerContext);
 
   // Cập nhật thanh seekBar khi bài hát phát
   useEffect(() => {
     let interval;
-    if (playStatus) {
+    if (playStatus && audioRef?.current) {
       interval = setInterval(() => {
-        // Giả định `track.currentTime` được cập nhật từ PlayerContext
-        const { currentTime, duration } = track;
+        const currentTime = audioRef.current.currentTime;
+        const duration = audioRef.current.duration;
+        
         if (currentTime && duration) {
           setTime({
             currentTime: {
@@ -44,8 +46,8 @@ const Player = () => {
         }
       }, 1000);
     }
-    return () => clearInterval(interval); // Dọn dẹp interval khi playStatus thay đổi
-  }, [playStatus, track, setTime, seekBar]);
+    return () => clearInterval(interval);
+  }, [playStatus, audioRef, setTime, seekBar]);
 
   return (
     <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">

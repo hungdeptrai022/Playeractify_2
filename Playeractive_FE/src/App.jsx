@@ -11,12 +11,14 @@ import Userprofile from './pages/Userprofile/Userprofile'
 const App = () => {
   return (
     <AuthProvider>
+     
         <Routes>
           <Route path='*' element ={<Home/>}/>
           <Route path='/login' element ={<Login/>}/>
           <Route path='/callback' element={<Callback />} />
           <Route path='/Userprofile' element={<Userprofile />} />
-        </Routes>     
+        </Routes>   
+       
     </AuthProvider>
     
   )

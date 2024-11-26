@@ -1,11 +1,12 @@
-
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useAuthContext } from '../context/AuthContext';
 import axios from 'axios';
+import { PlayerContext } from '../context/PlayerContext';
+
 const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
 const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
 
@@ -18,6 +19,7 @@ const Navbar = () => {
   const [isListening, setIsListening] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const { pause } = useContext(PlayerContext);
 
   // Fetch Spotify access token
   useEffect(() => {
@@ -128,6 +130,11 @@ const Navbar = () => {
     }
   };
 
+  const handleSignInClick = () => {
+    pause();
+    navigate("/login");
+  };
+
   return (
     <nav className="flex items-center justify-between p-4">
       {/* Navigation Arrows */}
@@ -156,8 +163,14 @@ const Navbar = () => {
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           className='bg-stone-800 text-center shadow-inner text-white focus:outline-none ml-2 rounded-2xl w-[max(10vw,250px)] h-[max(2vw,35px)] hover:bg-stone-700 focus:bg-stone-700'
         />
-        <img
+        {/* <img
           src={assets.search_icon}
+          alt="Search"
+          className="w-6 cursor-pointer"
+          onClick={handleSearch}
+        /> */}
+        <img 
+          src={assets.music_note} 
           alt="Search"
           className="w-6 cursor-pointer"
           onClick={handleSearch}
@@ -176,7 +189,7 @@ const Navbar = () => {
         {!user ? (
           <p
             className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
-            onClick={() => navigate("/login")}
+            onClick={handleSignInClick}
           >
             Sign In
           </p>
