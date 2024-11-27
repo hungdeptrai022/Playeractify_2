@@ -10,9 +10,19 @@ import { PlayerContext } from '../context/PlayerContext';
 const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
 const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
 
+const AUDD_API_KEY = 'd9636c27326a580442a26a117397a43f';
 
 const Navbar = () => {
   const navigate = useNavigate();
+
+
+  //Search with beat
+  const [isRecording, setIsRecording] = useState(false);
+  const [searchResult, setSearchResult] = useState(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunks = useRef([]);
+  
+
   const { user, userData } = useAuthContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [accessToken, setAccessToken] = useState('');
@@ -77,6 +87,61 @@ const Navbar = () => {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
+
+  const handleSearchWithBeat = () => {
+    if (!navigator.mediaDevices || !("AudioContext" in window)) {
+      alert("Trình duyệt của bạn không hỗ trợ ghi âm.");
+      return;
+    }
+  
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    navigator.mediaDevices.getUserMedia({ audio: true })
+      .then((stream) => {
+        const mediaRecorder = new MediaRecorder(stream);
+        const audioChunks = [];
+  
+        mediaRecorder.ondataavailable = (event) => {
+          audioChunks.push(event.data);
+        };
+  
+        mediaRecorder.onstop = async () => {
+          const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+          const formData = new FormData();
+          formData.append("file", audioBlob);
+          formData.append("api_key", AUDD_API_KEY);
+  
+          try {
+            const response = await axios.post("https://api.audd.io/", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
+            });
+  
+            const { status, result } = response.data;
+            if (status === "success" && result) {
+              const { artist, title } = result;
+              alert(`Tìm thấy bài hát: ${title} của nghệ sĩ ${artist}`);
+              navigate(`/search?q=${encodeURIComponent(title)}`);
+            } else {
+              alert("Không tìm thấy bài hát.");
+            }
+          } catch (error) {
+            console.error("Lỗi khi phân tích âm thanh:", error);
+          }
+        };
+  
+        mediaRecorder.start();
+        setIsRecording(true);
+  
+        setTimeout(() => {
+          mediaRecorder.stop(); // Dừng ghi âm sau ? giây
+          setIsRecording(false);
+        }, 8000);
+      })
+      .catch((error) => {
+        console.error("Lỗi khi ghi âm:", error);
+      });
+  };
+  
+  
 
   const handleVoiceSearch = () => {
 
@@ -169,12 +234,13 @@ const Navbar = () => {
           className="w-6 cursor-pointer"
           onClick={handleSearch}
         /> */}
-        <img 
-          src={assets.music_note} 
-          alt="Search"
+        <img
+          src={assets.music_note}
+          alt="SearchWithBeat"
           className="w-6 cursor-pointer"
-          onClick={handleSearch}
+          onClick={handleSearchWithBeat}
         />
+        {isRecording && <p>Đang ghi âm...</p>}
         <img 
           src={assets.micro_icon} 
           alt="Voice Search"

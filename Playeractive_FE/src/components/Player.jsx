@@ -61,7 +61,7 @@ const Player = () => {
           </h3>
           <p className="text-slate-200 text-sm group overflow-hidden cursor-pointer w-[250px] whitespace-nowrap">
             <span className="block group-hover:animate-text-slide">
-              {track?.song_artist || "Unknown artist"}
+              {track?.song_artist || ""}
             </span>
           </p>
         </div>
