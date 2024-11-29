@@ -1,27 +1,29 @@
-import React, { useContext,useState } from 'react'
-
-import { BrowserRouter as Router, Route, Routes,useNavigate } from 'react-router-dom'
-
-import Home from './pages/Home/Home'
-import Login from './pages/Login/Login'
-import Callback from './pages/Callback/Callbak'
-import { AuthProvider } from './context/AuthContext'
-import Userprofile from './pages/Userprofile/Userprofile'
+import React from 'react';
+import { Route, Routes, Navigate } from 'react-router-dom';
+import Home from './pages/Home/Home';
+import Login from './pages/Login/Login';
+import Callback from './pages/Callback/Callback';
+import Userprofile from './pages/Userprofile/Userprofile';
+import ProtectedRoute from './route/ProtectedRoute';
 
 const App = () => {
   return (
-    <AuthProvider>
-     
-        <Routes>
-          <Route path='*' element ={<Home/>}/>
-          <Route path='/login' element ={<Login/>}/>
-          <Route path='/callback' element={<Callback />} />
-          <Route path='/Userprofile' element={<Userprofile />} />
-        </Routes>   
-       
-    </AuthProvider>
-    
-  )
-}
+    <Routes>
+      <Route path='/login' element={<Login />} />
+      <Route path='/callback' element={<Callback />} />
+      <Route path='/Userprofile' element={
+        <ProtectedRoute>
+          <Userprofile />
+        </ProtectedRoute>
+      } />
+      <Route path='*' element={
+        <ProtectedRoute>
+          <Home />
+        </ProtectedRoute>
+      } />
+      <Route path='*' element={<Navigate to="/login" replace />} />
+    </Routes>
+  );
+};
 
-export default App
+export default App;

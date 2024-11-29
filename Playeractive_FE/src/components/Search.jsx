@@ -2,7 +2,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { PlayerContext } from "../context/PlayerContext";
-
+import { useAuthContext } from "../context/AuthContext";
 const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
 const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
 const GENIUS_ACCESS_TOKEN = "gmqn4PfceZZMHF93VnuRff3_sThC4b10VW0-HlprwioeI2EgvyG4j5o4yHdb3BmH";
@@ -12,7 +12,7 @@ const Search = () => {
   const location = useLocation();
   const [searchResults, setSearchResults] = useState([]);
   const [accessToken, setAccessToken] = useState("");
-  const { playWithTrack } = useContext(PlayerContext);
+  const { playFullTrack, isReady } = useContext(PlayerContext);
   const [playingTrack, setPlayingTrack] = useState(null);
   const [query, setQuery] = useState(new URLSearchParams(location.search).get("q"));
   const [artists, setArtists] = useState([]);
@@ -23,7 +23,7 @@ const Search = () => {
   const [selectedLyrics, setSelectedLyrics] = useState(null);
   const [isSearching, setIsSearching] = useState(false);
   const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
-  
+  const { spotifyToken } = useAuthContext(); // Sử dụng token từ AuthContext
 
 
   const detectSearchType = (query) => {
@@ -264,7 +264,7 @@ const Search = () => {
                 `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
                 {
                   headers: {
-                    Authorization: `Bearer ${accessToken}`
+                    Authorization: `Bearer ${spotifyToken}`
                   }
                 }
               );
@@ -280,7 +280,7 @@ const Search = () => {
            `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=artist,track,album&limit=30`,
             {
               headers: {
-                Authorization: `Bearer ${accessToken}`,
+                Authorization: `Bearer ${spotifyToken}`,
               },
             }
           );
@@ -385,6 +385,16 @@ const Search = () => {
     );
   };
 
+  // Thêm hàm xử lý phát nhạc
+  const handlePlayTrack = async (track) => {
+    try {
+      await playFullTrack(`spotify:track:${track.id}`);
+    } catch (error) {
+      console.error("Error playing track:", error);
+      alert("Không thể phát bài hát này. Vui lòng đảm bảo bạn có tài khoản Spotify Premium!");
+    }
+  };
+
   return (
     <><Navbar />
       <div className="p-4 text-white mt-16 flex flex-col items-center">
@@ -402,16 +412,7 @@ const Search = () => {
                 <div
                   key={track.id}
                   className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
-                  onClick={() =>
-                    playWithTrack({
-                      song_name: track.name,
-                      song_artist: track.artists
-                        .map((artist) => artist.name)
-                        .join(", "),
-                      preview_url: track.preview_url,
-                      song_image: track.album.images[0]?.url,
-                    })
-                  }
+                  onClick={() => handlePlayTrack(track)}
                 >
                   <img
                     src={track.album.images[0]?.url}
@@ -469,16 +470,7 @@ const Search = () => {
                   <div
                     key={track.id}
                     className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
-                    onClick={() =>
-                      playWithTrack({
-                        song_name: track.name,
-                        song_artist: track.artists
-                          .map((artist) => artist.name)
-                          .join(", "),
-                        preview_url: track.preview_url,
-                        song_image: track.album.images[0]?.url,
-                      })
-                    }
+                    onClick={() => handlePlayTrack(track)}
                   >
                     <img
                       src={track.album.images[0]?.url}
@@ -540,16 +532,7 @@ const Search = () => {
                 <div
                   key={track.id}
                   className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
-                  onClick={() =>
-                    playWithTrack({
-                      song_name: track.name,
-                      song_artist: track.artists
-                        .map((artist) => artist.name)
-                        .join(", "),
-                      preview_url: track.preview_url,
-                      song_image: track.album.images[0]?.url,
-                    })
-                  }
+                  onClick={() => handlePlayTrack(track)}
                 >
                   <img
                     src={track.album.images[0]?.url}
@@ -677,16 +660,7 @@ const Search = () => {
                   <div
                     key={track.id}
                     className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
-                    onClick={() =>
-                      playWithTrack({
-                        song_name: track.name,
-                        song_artist: track.artists
-                          .map((artist) => artist.name)
-                          .join(", "),
-                        preview_url: track.preview_url,
-                        song_image: track.album.images[0]?.url,
-                      })
-                    }
+                    onClick={() => handlePlayTrack(track)}
                   >
                     <img
                       src={track.album.images[0]?.url}
@@ -699,7 +673,6 @@ const Search = () => {
                     <p className="text-slate-200 text-sm text-center">
                       {track.artists.map((artist) => artist.name).join(", ")}
                     </p>
-                  
                   </div>
                 ))}
               </div>

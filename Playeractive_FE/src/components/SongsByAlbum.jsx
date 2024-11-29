@@ -3,90 +3,106 @@ import { useParams } from "react-router-dom";
 import Navbar from "./Navbar";
 import { PlayerContext } from "../context/PlayerContext";
 import { useAlbumColor } from '../hooks/useAlbumColor'
+import { useAuthContext } from '../context/AuthContext'
 
 const SongsByAlbum = () => {
-  const { albumId } = useParams(); // Lấy albumId từ URL
+  const { albumId } = useParams();
   const [songs, setSongs] = useState([]);
-  const [accessToken, setAccessToken] = useState("");
-  const { playWithTrack } = useContext(PlayerContext);
-  const [albumInfo, setAlbumInfo] = useState(null); 
+  const [albumInfo, setAlbumInfo] = useState(null);
+  const { playFullTrack, isReady } = useContext(PlayerContext);
+  const { spotifyToken } = useAuthContext();
   const { colors, loading } = useAlbumColor(albumInfo?.images?.[0]?.url);
-  useEffect(() => {
-    const fetchAccessToken = async () => {  
-      const authParameters = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `grant_type=client_credentials&client_id=1b512b5a45e84e56b21ebef0b920b693&client_secret=dc2567d10ddb4a31920f52af2c8b5bd9`,
-      };
-
-      try {
-        const result = await fetch(
-          "https://accounts.spotify.com/api/token",
-          authParameters
-        );
-        const data = await result.json();
-        setAccessToken(data.access_token);
-      } catch (error) {
-        console.error("Error fetching access token:", error);
-      }
-    };
-
-    fetchAccessToken();
-  }, []);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!spotifyToken || !albumId) return;
 
-    const fetchSongs = async () => {
+    const fetchAlbumData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        const response = await fetch(
-          `https://api.spotify.com/v1/albums/${albumId}/tracks`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        const data = await response.json();
-        setSongs(data.items || []);
-      } catch (error) {
-        console.error("Error fetching songs by album:", error);
-      }
-    };
-
-    fetchSongs();
-  }, [accessToken, albumId]);
-
-  useEffect(() => {
-    if (!accessToken) return;
-
-    const fetchAlbumInfo = async () => {
-      try {
-        const response = await fetch(
+        const albumResponse = await fetch(
           `https://api.spotify.com/v1/albums/${albumId}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${spotifyToken}`,
             },
           }
         );
-        const data = await response.json();
-        setAlbumInfo(data); // Lưu thông tin album
+
+        if (!albumResponse.ok) {
+          throw new Error('Failed to fetch album info');
+        }
+
+        const albumData = await albumResponse.json();
+        setAlbumInfo(albumData);
+
+        const tracksResponse = await fetch(
+          `https://api.spotify.com/v1/albums/${albumId}/tracks`,
+          {
+            headers: {
+              Authorization: `Bearer ${spotifyToken}`,
+            },
+          }
+        );
+
+        if (!tracksResponse.ok) {
+          throw new Error('Failed to fetch album tracks');
+        }
+
+        const tracksData = await tracksResponse.json();
+        setSongs(tracksData.items || []);
+
       } catch (error) {
-        console.error("Error fetching album info:", error);
+        console.error("Error fetching album data:", error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchAlbumInfo();
-  }, [accessToken, albumId]);
+    fetchAlbumData();
+  }, [albumId, spotifyToken]);
+
   const formatDuration = (milliseconds) => {
     const minutes = Math.floor(milliseconds / 60000);
     const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
-  
+
+  const handlePlayTrack = async (track) => {
+    try {
+      await playFullTrack(`spotify:track:${track.id}`);
+    } catch (error) {
+      console.error("Error playing track:", error);
+      alert("Không thể phát bài hát này. Vui lòng đảm bảo bạn có tài khoản Spotify Premium!");
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#121212] text-white">
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <p>Loading album...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#121212] text-white">
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <p>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       style={{ 
@@ -142,12 +158,7 @@ const SongsByAlbum = () => {
             {songs.map((track, index) => (
               <div
                 key={track.id}
-                onClick={() => playWithTrack({
-                  song_name: track.name,
-                  song_artist: track.artists.map(artist => artist.name).join(", "),
-                  preview_url: track.preview_url,
-                  song_image: albumInfo?.images[0]?.url,
-                })}
+                onClick={() => handlePlayTrack(track)}
                 className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center 
                            text-[#a7a7a7] hover:bg-[#ffffff1a] cursor-pointer 
                            transition-colors duration-200"

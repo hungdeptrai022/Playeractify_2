@@ -2,63 +2,37 @@ import React, { useContext, useEffect, useState } from 'react'
 import Navbar from './Navbar'
 import { useNavigate } from "react-router-dom";
 import { PlayerContext } from '../context/PlayerContext'
-
-
-const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
-const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
-
+import { useAuthContext } from '../context/AuthContext';
 
 const DisplayHome = () => {
-    const [accessToken, setAccessToken] = useState('');
     const [albums, setAlbums] = useState([]);
     const [tracks, setTracks] = useState([]);
-    const [artists, setArtists] = useState([]); // Thêm state cho nghệ sĩ
+    const [artists, setArtists] = useState([]);
     const { playWithTrack } = useContext(PlayerContext);
+    const { spotifyToken } = useAuthContext();
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchAccessToken = async () => {
-            const authParameters = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`,
-            };
-
-            try {
-                const result = await fetch('https://accounts.spotify.com/api/token', authParameters);
-                const data = await result.json();
-                setAccessToken(data.access_token);
-            } catch (error) {
-                console.error('Error fetching access token:', error);
-            }
-        };
-
-        fetchAccessToken();
-    }, []);
-
-    useEffect(() => {
-        if (!accessToken) return;
+        if (!spotifyToken) return;
 
         const fetchAlbumsAndTracks = async () => {
             try {
                 // Lấy danh sách album phổ biến
                 const albumsResponse = await fetch(`https://api.spotify.com/v1/browse/new-releases?limit=8`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                    headers: { 'Authorization': `Bearer ${spotifyToken}` }
                 });
                 const albumsData = await albumsResponse.json();
                 setAlbums(albumsData.albums.items);
 
                 // Lấy danh sách bài hát phổ biến
                 const tracksResponse = await fetch(`https://api.spotify.com/v1/browse/featured-playlists?limit=8`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                    headers: { 'Authorization': `Bearer ${spotifyToken}` }
                 });
                 const tracksData = await tracksResponse.json();
                 const trackList = await Promise.all(
                     tracksData.playlists.items.map(async (playlist) => {
                         const response = await fetch(`https://api.spotify.com/v1/playlists/${playlist.id}/tracks?limit=1`, {
-                            headers: { 'Authorization': `Bearer ${accessToken}` }
+                            headers: { 'Authorization': `Bearer ${spotifyToken}` }
                         });
                         const data = await response.json();
                         return data.items[0]?.track;
@@ -67,19 +41,22 @@ const DisplayHome = () => {
                 setTracks(trackList.filter(track => track !== undefined));
 
                 // Lấy danh sách nghệ sĩ nổi bật
-                const artistsResponse = await fetch(`https://api.spotify.com/v1/artists?ids=1uNFoZAHBGtllmzznpCI3s,3Nrfpe0tUJi4K4DXYWgMUX,66CXWjxzNUsdJxJ2JdwvnR,6eUKZXaKkcviH0Ku9w2n3V,0du5cEVh5yTK9QJze8zA0C,04gDigrS5kc9YWfZHwBETP,6VuMaDnrHyPL1p4EHjYLi7`, {
-                    headers: { 'Authorization': `Bearer ${accessToken}` }
+                const artistsResponse = await fetch(`https://api.spotify.com/v1/artists?ids=2CIMQHirSU0MQqyYHq0eOx%2C57dN52uHvrHOxijzpIgu3E%2C1vCWHaC5f2uS3yhpwWbIA6`, {
+                    headers: { 'Authorization': `Bearer ${spotifyToken}` }
                 });
                 const artistsData = await artistsResponse.json();
                 setArtists(artistsData.artists);
 
             } catch (error) {
-                console.error('Error fetching albums or tracks:', error);
+                console.error('Error fetching data:', error);
+                if (error.status === 401) {
+                    console.log('Token expired, need to refresh');
+                }
             }
         };
 
         fetchAlbumsAndTracks();
-    }, [accessToken]);
+    }, [spotifyToken]);
 
     const handleAlbumClick = (albumId) => {
         navigate(`/search/songs-by-album/${albumId}`);
@@ -123,7 +100,7 @@ const DisplayHome = () => {
                                     song_artist: track.artists
                                         .map((artist) => artist.name)
                                         .join(", "),
-                                    preview_url: track.preview_url, // Sử dụng preview_url từ Spotify
+                                    preview_url: track.preview_url,
                                     song_image: track.album.images[0]?.url,
                                 })
                             }>

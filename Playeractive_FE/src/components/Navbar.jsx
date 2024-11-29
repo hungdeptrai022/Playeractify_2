@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
-import { signOut } from "firebase/auth";
-import { auth } from "../firebase";
 import { useAuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { PlayerContext } from '../context/PlayerContext';
 
 const CLIENT_ID = "1b512b5a45e84e56b21ebef0b920b693";
 const CLIENT_SECRET = "dc2567d10ddb4a31920f52af2c8b5bd9";
-
 const AUDD_API_KEY = 'd9636c27326a580442a26a117397a43f';
 
 const Navbar = () => {
   const navigate = useNavigate();
-
+  const { user, spotifyUser, logout } = useAuthContext();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+  const { pause } = useContext(PlayerContext);
 
   //Search with beat
   const [isRecording, setIsRecording] = useState(false);
@@ -22,14 +24,6 @@ const Navbar = () => {
   const mediaRecorderRef = useRef(null);
   const audioChunks = useRef([]);
   
-
-  const { user, userData } = useAuthContext();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [accessToken, setAccessToken] = useState('');
-  const [isListening, setIsListening] = useState(false);
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
-  const { pause } = useContext(PlayerContext);
 
   // Fetch Spotify access token
   useEffect(() => {
@@ -185,19 +179,12 @@ const Navbar = () => {
     setDropdownOpen(false);
   };
 
-  const handleLogoutClick = async () => {
-    try {
-      await signOut(auth);
+  const handleAuthClick = () => {
+    if (user) {
+      // Nếu đã đăng nhập thì logout
+      logout();
       navigate('/');
-      setDropdownOpen(false);
-    } catch (error) {
-      console.error('Logout error:', error);
     }
-  };
-
-  const handleSignInClick = () => {
-    pause();
-    navigate("/login");
   };
 
   return (
@@ -228,19 +215,12 @@ const Navbar = () => {
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           className='bg-stone-800 text-center shadow-inner text-white focus:outline-none ml-2 rounded-2xl w-[max(10vw,250px)] h-[max(2vw,35px)] hover:bg-stone-700 focus:bg-stone-700'
         />
-        {/* <img
-          src={assets.search_icon}
-          alt="Search"
-          className="w-6 cursor-pointer"
-          onClick={handleSearch}
-        /> */}
         <img
           src={assets.music_note}
           alt="SearchWithBeat"
           className="w-6 cursor-pointer"
           onClick={handleSearchWithBeat}
         />
-        {isRecording && <p>Đang ghi âm...</p>}
         <img 
           src={assets.micro_icon} 
           alt="Voice Search"
@@ -252,39 +232,19 @@ const Navbar = () => {
 
       {/* Account Controls */}
       <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-        {!user ? (
-          <p
-            className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
-            onClick={handleSignInClick}
+        {user && (
+          <button
+            className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl cursor-pointer hover:bg-gray-200 transition-colors"
+            onClick={handleAuthClick}
           >
-            Sign In
+            Log Out
+          </button>
+        )}
+        
+        {user && (
+          <p className="text-white text-[15px]">
+            Welcome, {spotifyUser?.display_name || "User"}
           </p>
-        ) : (
-          <>
-            <p className="text-white text-[15px]">Welcome, {userData?.name || "User"}</p>
-            <button
-              onClick={toggleDropdown}
-              className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl flex items-center justify-center"
-            >
-              {userData?.name?.charAt(0).toUpperCase() || "U"}
-            </button>
-            {dropdownOpen && (
-              <div className="absolute right-0 top-10 w-40 bg-white rounded-lg shadow-xl border border-gray-200">
-                <button
-                  onClick={handleProfileClick}
-                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-t-lg transition-colors duration-200"
-                >
-                  Profile
-                </button>
-                <button
-                  onClick={handleLogoutClick}
-                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-b-lg transition-colors duration-200"
-                >
-                  Logout
-                </button>
-              </div>
-            )}
-          </>
         )}
       </div>
     </nav>

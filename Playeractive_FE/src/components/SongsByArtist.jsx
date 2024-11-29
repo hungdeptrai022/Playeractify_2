@@ -3,88 +3,105 @@ import { useParams } from "react-router-dom";
 import Navbar from "./Navbar";
 import { PlayerContext } from "../context/PlayerContext";
 import { useAlbumColor } from '../hooks/useAlbumColor';
+import { useAuthContext } from '../context/AuthContext';
 
 const SongsByArtist = () => {
-  const { artistId } = useParams(); // Lấy artistId từ URL
+  const { artistId } = useParams();
   const [songs, setSongs] = useState([]);
-  const [accessToken, setAccessToken] = useState("");
-  const { playWithTrack } = useContext(PlayerContext);
-  const [artistInfo, setArtistInfo] = useState(null); // Thêm state để lưu thông tin nghệ sĩ
+  const [artistInfo, setArtistInfo] = useState(null);
   const { colors, loading } = useAlbumColor(artistInfo?.images?.[0]?.url);
+  const { spotifyToken } = useAuthContext();
+  const { playFullTrack, isReady } = useContext(PlayerContext);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchAccessToken = async () => {
-      const authParameters = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/x-www-form-urlencoded",
-        },
-        body: `grant_type=client_credentials&client_id=1b512b5a45e84e56b21ebef0b920b693&client_secret=dc2567d10ddb4a31920f52af2c8b5bd9`,
-      };
+    if (!spotifyToken || !artistId) return;
+
+    const fetchArtistData = async () => {
+      setIsLoading(true);
+      setError(null);
 
       try {
-        const result = await fetch("https://accounts.spotify.com/api/token", authParameters);
-        const data = await result.json();
-        setAccessToken(data.access_token);
-      } catch (error) {
-        console.error("Error fetching access token:", error);
-      }
-    };
-
-    fetchAccessToken();
-  }, []);
-
-  useEffect(() => {
-    if (!accessToken) return;
-
-    const fetchSongs = async () => {
-      try {
-        const response = await fetch(
-          `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=VN`,
-          {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-        const data = await response.json();
-        setSongs(data.tracks || []);
-      } catch (error) {
-        console.error("Error fetching songs by artist:", error);
-      }
-    };
-
-    fetchSongs();
-  }, [accessToken, artistId]);
-
-  useEffect(() => {
-    if (!accessToken) return;
-
-    const fetchArtistInfo = async () => {
-      try {
-        const response = await fetch(
+        const artistResponse = await fetch(
           `https://api.spotify.com/v1/artists/${artistId}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
+              Authorization: `Bearer ${spotifyToken}`,
             },
           }
         );
-        const data = await response.json();
-        setArtistInfo(data); // Lưu thông tin nghệ sĩ
+
+        if (!artistResponse.ok) {
+          throw new Error('Failed to fetch artist info');
+        }
+
+        const artistData = await artistResponse.json();
+        setArtistInfo(artistData);
+
+        const tracksResponse = await fetch(
+          `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=VN`,
+          {
+            headers: {
+              Authorization: `Bearer ${spotifyToken}`,
+            },
+          }
+        );
+
+        if (!tracksResponse.ok) {
+          throw new Error('Failed to fetch top tracks');
+        }
+
+        const tracksData = await tracksResponse.json();
+        setSongs(tracksData.tracks || []);
+
       } catch (error) {
-        console.error("Error fetching artist info:", error);
+        console.error("Error fetching artist data:", error);
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchArtistInfo();
-  }, [accessToken, artistId]);
+    fetchArtistData();
+  }, [artistId, spotifyToken]);
+
+  const handlePlayTrack = async (track) => {
+    try {
+      await playFullTrack(`spotify:track:${track.id}`);
+    } catch (error) {
+      console.error("Error playing track:", error);
+      alert("Không thể phát bài hát này. Vui lòng đảm bảo bạn có tài khoản Spotify Premium!");
+    }
+  };
 
   const formatDuration = (milliseconds) => {
     const minutes = Math.floor(milliseconds / 60000);
     const seconds = ((milliseconds % 60000) / 1000).toFixed(0);
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-[#121212] text-white">
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <p>Loading artist data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#121212] text-white">
+        <Navbar />
+        <div className="flex justify-center items-center h-screen">
+          <p>Error: {error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -97,15 +114,8 @@ const SongsByArtist = () => {
       }}
       className="min-h-screen relative"
     >
-      {/* Overlay để làm tối background */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: 'rgba(0, 0, 0, 0.3)'
-        }}
-      />
+      <div className="absolute inset-0" style={{ background: 'rgba(0, 0, 0, 0.3)' }} />
 
-      {/* Content wrapper */}
       <div className="relative z-10">
         <Navbar />
         
@@ -119,7 +129,7 @@ const SongsByArtist = () => {
             <div className="flex flex-col">
               <span className="text-white opacity-80">Artist</span>
               <h2 className="text-5xl font-bold mb-4 md:text-7xl text-white">
-                {artistInfo?.name || "Artist Name"}
+                {artistInfo?.name}
               </h2>
               <div className="flex items-center gap-2 text-white opacity-80">
                 <span>{artistInfo?.followers?.total?.toLocaleString()} followers</span>
@@ -140,21 +150,16 @@ const SongsByArtist = () => {
             {songs.map((track, index) => (
               <div
                 key={track.id}
-                onClick={() => playWithTrack({
-                  song_name: track.name,
-                  song_artist: track.artists.map(artist => artist.name).join(", "),
-                  preview_url: track.preview_url,
-                  song_image: track.album.images[0]?.url,
-                })}
+                onClick={() => handlePlayTrack(track)}
                 className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center 
-                           text-[#a7a7a7] hover:bg-[#ffffff1a] cursor-pointer 
-                           transition-colors duration-200"
+                         text-[#a7a7a7] hover:bg-[#ffffff1a] cursor-pointer 
+                         transition-colors duration-200"
               >
                 <div className="flex items-center text-white">
                   <span className="w-8 text-[#a7a7a7]">{index + 1}</span>
                   <img
                     className="w-10 h-10 mr-4 rounded"
-                    src={track.album?.images?.[0]?.url || "https://via.placeholder.com/150"}
+                    src={track.album?.images?.[0]?.url}
                     alt=""
                   />
                   <span className="truncate">{track.name}</span>
