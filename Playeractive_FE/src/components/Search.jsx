@@ -67,7 +67,10 @@ const Search = () => {
       'madihu',
       'hiếu thứ hai',
       'obito',
-      'g-dragon'
+      'g-dragon',
+      'đen',
+      'binz',
+      'bin',
     ];
   
     const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ', 'trốn tìm'];
@@ -139,6 +142,12 @@ const Search = () => {
     
     if (lyricsPattern.test(query)) {
       return 'lyrics';
+    }
+
+    // Thêm kiểm tra thể loại
+    const genrePattern = /thể loại|genre/i;
+    if (genrePattern.test(query)) {
+        return 'genre';
     }
 
     // Mặc định trả về song nếu không match với các rule trên
@@ -229,12 +238,27 @@ const Search = () => {
       
       setIsSearching(true);
       const searchType = detectSearchType(query);
-      const cleanQuery = query.replace(/lyrics:|loi:|lời:/i, '').trim();
+      const cleanQuery = query.replace(/thể loại|genre/i, '').trim(); // Xóa từ khóa thể loại
       console.log("Query:", query);
       console.log("Search Type:", searchType);
 
       try {
-        if (searchType === 'lyrics') {
+        if (searchType === 'genre') {
+            // Tìm kiếm theo thể loại
+            const response = await fetch(
+                `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=playlist&limit=30`, // Tìm kiếm playlist theo thể loại
+                {
+                    headers: {
+                        Authorization: `Bearer ${spotifyToken}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+            setSongs(data.playlists?.items || []); // Lưu kết quả vào biến songs
+            setArtists([]);
+            setAlbums([]);
+        } else if (searchType === 'lyrics') {
           const geniusResults = await searchGenius(cleanQuery);
           const matchedTracks = await matchSpotifyWithGenius(geniusResults);
           

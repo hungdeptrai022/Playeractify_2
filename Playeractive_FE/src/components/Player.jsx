@@ -14,7 +14,9 @@ const Player = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrack, setCurrentTrack] = useState(null);
   const [trackProgress, setTrackProgress] = useState(0);
-  const [volume, setVolume] = useState(50);
+  const [volume, setVolume] = useState(100);
+  const [isHovering, setIsHovering] = useState(false);
+  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     if (!player) return;
@@ -72,15 +74,30 @@ const Player = () => {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  const handleSeek = (e) => {
+  const handleMouseDown = (e) => {
     if (!player || !playerState) return;
-    
+
     const seekBar = e.currentTarget;
     const rect = seekBar.getBoundingClientRect();
     const position = (e.clientX - rect.left) / rect.width;
     const seekPosition = position * playerState.duration;
-    
+
     player.seek(seekPosition);
+    
+    const handleMouseMove = (e) => {
+      const newRect = seekBar.getBoundingClientRect();
+      const newPosition = (e.clientX - newRect.left) / newRect.width;
+      const newSeekPosition = newPosition * playerState.duration;
+      player.seek(newSeekPosition);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
   };
 
   const handleVolumeChange = (e) => {
@@ -88,6 +105,20 @@ const Player = () => {
     setVolume(newVolume);
     if (player) {
       player.setVolume(newVolume / 100);
+      setIsMuted(newVolume === "0");
+    }
+  };
+
+  const handleVolumeToggle = () => {
+    if (player) {
+      if (isMuted) {
+        player.setVolume(volume / 100);
+        setIsMuted(false);
+      } else {
+        setVolume(volume);
+        player.setVolume(0);
+        setIsMuted(true);
+      }
     }
   };
 
@@ -160,11 +191,11 @@ const Player = () => {
         <div className="flex items-center gap-5">
           <p>{formatTime(trackProgress)}</p>
           <div
-            onClick={handleSeek}
+            onMouseDown={handleMouseDown}
             className="relative w-[60vw] max-w-[500px] bg-gray-500 rounded-full cursor-pointer"
           >
             <div
-              className="h-1 bg-white rounded-full transition-all hover:bg-blue-800"
+              className="h-1 bg-white rounded-full transition-all hover:bg-blue-600"
               style={{
                 width: `${playerState ? (trackProgress / playerState.duration) * 100 : 0}%`
               }}
@@ -187,7 +218,11 @@ const Player = () => {
         <img className="w-4" src={assets.mic_icon} alt="" />
         <img className="w-4" src={assets.queue_icon} alt="" />
         <img className="w-4" src={assets.speaker_icon} alt="" />
-        <img className="w-4" src={assets.volume_icon} alt="" />
+        {isMuted ? (
+          <img className="w-5" src={assets.mute_icon} alt="Mute" onClick={handleVolumeToggle} />
+        ) : (
+          <img className="w-5" src={assets.volume_up} alt="Volume" onClick={handleVolumeToggle} />
+        )}
         <input
           type="range"
           min="0"

@@ -46,6 +46,8 @@ import song3 from  './song3.mp3'
 import object from './Hiss, WING - Objet.mp3'
 import qrcode from './qrcode.png'
 import music_note from './music_note.png'
+import mute_icon from './volume_mute.png'
+import volume_up from './volume_up.png'
 
 export const assets = {
     bell_icon,
@@ -75,7 +77,9 @@ export const assets = {
     music,
     micro_icon,
     qrcode,
-    music_note
+    music_note,
+    mute_icon,
+    volume_up
 }
 
 export const albumsData = [
