@@ -161,12 +161,18 @@ const Player = () => {
           <p>{formatTime(trackProgress)}</p>
           <div
             onClick={handleSeek}
-            className="w-[60vw] max-w-[500px] bg-gray-500 rounded-full cursor-pointer"
+            className="relative w-[60vw] max-w-[500px] bg-gray-500 rounded-full cursor-pointer"
           >
             <div
-              className="h-1 bg-white hover:bg-blue-800 rounded-full transition-all"
+              className="h-1 bg-white rounded-full transition-all hover:bg-blue-800"
               style={{
                 width: `${playerState ? (trackProgress / playerState.duration) * 100 : 0}%`
+              }}
+            />
+            <div
+              className="absolute top-[-6px] left-0 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full cursor-pointer"
+              style={{
+                left: `${playerState ? (trackProgress / playerState.duration) * 100 : 0}%`
               }}
             />
           </div>
@@ -188,7 +194,7 @@ const Player = () => {
           max="100"
           value={volume}
           onChange={handleVolumeChange}
-          className="w-20"
+          className="w-20 h-1"
         />
         <img className="w-4" src={assets.mini_player_icon} alt="" />
         <img className="w-4" src={assets.zoom_icon} alt="" />
