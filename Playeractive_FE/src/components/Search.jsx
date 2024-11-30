@@ -423,9 +423,18 @@ const Search = () => {
                     {track.name}
                   </h3>
                   <p className="text-slate-200 text-sm text-center">
-                    <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
-                        {track.artists.map((artist) => artist.name).join(", ")}
-                    </span>
+                    {track.artists.map((artist) => (
+                      <span
+                        key={artist.id}
+                        className="cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToSongsByArtist(artist.id);
+                        }}
+                      >
+                        {artist.name}
+                      </span>
+                    )).reduce((prev, curr) => [prev, ', ', curr])}
                   </p>
                   {track.geniusUrl && (
                     <button
@@ -483,9 +492,18 @@ const Search = () => {
                       {track.name}
                     </h3>
                     <p className="text-slate-200 text-sm text-center">
-                      <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
-                        {track.artists.map((artist) => artist.name).join(", ")}
-                      </span>
+                      {track.artists.map((artist) => (
+                        <span
+                          key={artist.id}
+                          className="cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigateToSongsByArtist(artist.id);
+                          }}
+                        >
+                          {artist.name}
+                        </span>
+                      )).reduce((prev, curr) => [prev, ', ', curr])}
                     </p>
                     {track.geniusUrl && (
                       <button
@@ -547,9 +565,18 @@ const Search = () => {
                     {track.name}
                   </h3>
                   <p className="text-slate-200 text-sm text-center">
-                    <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
-                        {track.artists.map((artist) => artist.name).join(", ")}
-                    </span>
+                    {track.artists.map((artist) => (
+                      <span
+                        key={artist.id}
+                        className="cursor-pointer"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigateToSongsByArtist(artist.id);
+                        }}
+                      >
+                        {artist.name}
+                      </span>
+                    )).reduce((prev, curr) => [prev, ', ', curr])}
                   </p>
                   {track.geniusUrl && (
                     <button
@@ -677,9 +704,18 @@ const Search = () => {
                       {track.name}
                     </h3>
                     <p className="text-slate-200 text-sm text-center">
-                      <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
-                        {track.artists.map((artist) => artist.name).join(", ")}
-                      </span>
+                      {track.artists.map((artist) => (
+                        <span
+                          key={artist.id}
+                          className="cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigateToSongsByArtist(artist.id);
+                          }}
+                        >
+                          {artist.name}
+                        </span>
+                      )).reduce((prev, curr) => [prev, ', ', curr])}
                     </p>
                   </div>
                 ))}
