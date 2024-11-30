@@ -423,7 +423,9 @@ const Search = () => {
                     {track.name}
                   </h3>
                   <p className="text-slate-200 text-sm text-center">
-                    {track.artists.map((artist) => artist.name).join(", ")}
+                    <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
+                        {track.artists.map((artist) => artist.name).join(", ")}
+                    </span>
                   </p>
                   {track.geniusUrl && (
                     <button
@@ -481,7 +483,9 @@ const Search = () => {
                       {track.name}
                     </h3>
                     <p className="text-slate-200 text-sm text-center">
-                      {track.artists.map((artist) => artist.name).join(", ")}
+                      <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
+                        {track.artists.map((artist) => artist.name).join(", ")}
+                      </span>
                     </p>
                     {track.geniusUrl && (
                       <button
@@ -543,7 +547,9 @@ const Search = () => {
                     {track.name}
                   </h3>
                   <p className="text-slate-200 text-sm text-center">
-                    {track.artists.map((artist) => artist.name).join(", ")}
+                    <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
+                        {track.artists.map((artist) => artist.name).join(", ")}
+                    </span>
                   </p>
                   {track.geniusUrl && (
                     <button
@@ -671,7 +677,9 @@ const Search = () => {
                       {track.name}
                     </h3>
                     <p className="text-slate-200 text-sm text-center">
-                      {track.artists.map((artist) => artist.name).join(", ")}
+                      <span className="cursor-pointer" onClick={(e) => { e.stopPropagation(); navigateToSongsByArtist(track.artists[0]?.id); }}>
+                        {track.artists.map((artist) => artist.name).join(", ")}
+                      </span>
                     </p>
                   </div>
                 ))}

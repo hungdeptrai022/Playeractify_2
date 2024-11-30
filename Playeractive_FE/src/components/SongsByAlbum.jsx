@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { PlayerContext } from "../context/PlayerContext";
 import { useAlbumColor } from '../hooks/useAlbumColor'
@@ -14,6 +14,7 @@ const SongsByAlbum = () => {
   const { colors, loading } = useAlbumColor(albumInfo?.images?.[0]?.url);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!spotifyToken || !albumId) return;
@@ -139,7 +140,17 @@ const SongsByAlbum = () => {
                 {albumInfo?.name}
               </h2>
               <div className="flex items-center gap-2 text-white opacity-80">
-                <h4>{albumInfo?.artists?.map(artist => artist.name).join(", ")}</h4>
+                <h4>
+                  {albumInfo?.artists?.map(artist => (
+                    <span 
+                      key={artist.id} 
+                      className="cursor-pointer" 
+                      onClick={() => navigate(`/search/songs-by-artist/${artist.id}`)}
+                    >
+                      {artist.name}
+                    </span>
+                  )).reduce((prev, curr) => [prev, ', ', curr])}
+                </h4>
                 <span>•</span>
                 <p>{songs.length} Songs</p>
                 <span>•</span>

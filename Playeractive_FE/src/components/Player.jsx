@@ -161,10 +161,10 @@ const Player = () => {
           <p>{formatTime(trackProgress)}</p>
           <div
             onClick={handleSeek}
-            className="w-[60vw] max-w-[500px] bg-gray-300 rounded-full cursor-pointer"
+            className="w-[60vw] max-w-[500px] bg-gray-500 rounded-full cursor-pointer"
           >
             <div
-              className="h-1 bg-blue-800 rounded-full transition-all"
+              className="h-1 bg-white hover:bg-blue-800 rounded-full transition-all"
               style={{
                 width: `${playerState ? (trackProgress / playerState.duration) * 100 : 0}%`
               }}
