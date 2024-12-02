@@ -10,15 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [spotifyToken, setSpotifyToken] = useState(null);
   const [spotifyUser, setSpotifyUser] = useState(null);
-  const scopes = [
-    'streaming',
-    'user-read-email',
-    'user-read-private',
-    'user-read-playback-state',
-    'user-modify-playback-state',
-    'user-library-read',
-    'user-library-modify'
-  ].join(' ');
+  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {

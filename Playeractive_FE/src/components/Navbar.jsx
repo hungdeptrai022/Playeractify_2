@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { assets } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
+import { signOut } from "firebase/auth";
+import { auth } from "../firebase";
 import { useAuthContext } from '../context/AuthContext';
 import axios from 'axios';
 import { PlayerContext } from '../context/PlayerContext';
@@ -11,7 +13,8 @@ const AUDD_API_KEY = 'd9636c27326a580442a26a117397a43f';
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const { user, spotifyUser, logout } = useAuthContext();
+  const { user, spotifyUser, logout, userData } = useAuthContext();
+
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -80,6 +83,25 @@ const Navbar = () => {
     if (searchQuery.trim()) {
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
+  };
+
+  //Login
+  const handleSignInClick = () => {
+    pause();
+    navigate("/signin");
+  };
+  const handleLogoutClick = async () => {
+    try {
+      await signOut(auth);
+      navigate('/singin');
+      setDropdownOpen(false);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
+  };
+  const handleProfileClick = () => {
+    navigate("/Userprofile");
+    setDropdownOpen(false);
   };
 
   const handleSearchWithBeat = () => {
@@ -174,10 +196,7 @@ const Navbar = () => {
   };
 
 
-  const handleProfileClick = () => {
-    navigate("/Userprofile");
-    setDropdownOpen(false);
-  };
+  
 
   const handleAuthClick = () => {
     if (user) {
@@ -232,19 +251,39 @@ const Navbar = () => {
 
       {/* Account Controls */}
       <div className="flex items-center gap-4 relative" ref={dropdownRef}>
-        {user && (
-          <button
-            className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl cursor-pointer hover:bg-gray-200 transition-colors"
-            onClick={handleAuthClick}
+        {!user ? (
+          <p
+            className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl hidden md:block cursor-pointer"
+            onClick={handleSignInClick}
           >
-            Log Out
-          </button>
-        )}
-        
-        {user && (
-          <p className="text-white text-[15px]">
-            Welcome, {spotifyUser?.display_name || "User"}
+            Sign In
           </p>
+        ) : (
+          <>
+            <p className="text-white text-[15px]">Welcome, {userData?.name || "User"}</p>
+            <button
+              onClick={toggleDropdown}
+              className="bg-white text-black text-[15px] px-4 py-1 rounded-2xl flex items-center justify-center"
+            >
+              {userData?.name?.charAt(0).toUpperCase() || "U"}
+            </button>
+            {dropdownOpen && (
+              <div className="absolute right-0 top-10 w-40 bg-white rounded-lg shadow-xl border border-gray-200">
+                <button
+                  onClick={handleProfileClick}
+                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-t-lg transition-colors duration-200"
+                >
+                  Profile
+                </button>
+                <button
+                  onClick={handleLogoutClick}
+                  className="block w-full text-left px-4 py-3 text-gray-700 hover:bg-purple-100 rounded-b-lg transition-colors duration-200"
+                >
+                  Logout
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </nav>

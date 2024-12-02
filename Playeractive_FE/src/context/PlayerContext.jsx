@@ -4,11 +4,19 @@ import { useAuthContext } from './AuthContext';
 export const PlayerContext = createContext();
 
 const PlayerContextProvider = (props) => {
+  const [user, setUser] = useState(null);
   const [player, setPlayer] = useState(null);
   const { spotifyToken } = useAuthContext();
   const [deviceId, setDeviceId] = useState(null);
   const [isReady, setIsReady] = useState(false);
   const [isInitializing, setIsInitializing] = useState(true);
+  const updateUserState = (email) => {
+    if (email) {
+      setUser(email);
+    } else {
+      console.error("Failed to update user state: invalid email.");
+    }
+  };
 
   useEffect(() => {
     if (!spotifyToken) return;
@@ -142,8 +150,15 @@ const PlayerContextProvider = (props) => {
     }
   };
 
+  const contextValue = {
+    
+    user,
+    updateUserState,
+  };
+
   return (
     <PlayerContext.Provider value={{
+      contextValue,
       playFullTrack,
       player,
       deviceId,
