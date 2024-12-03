@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { PlayerContext } from '../../context/PlayerContext';
 
 
-const Login = () => {
+const Signin = () => {
   const { updateUserState } = useContext(PlayerContext);
 
 
@@ -25,7 +25,7 @@ const Login = () => {
 
       if (signState === "Sign In") {
         await login(email, password);
-        updateUserState(email); // Cập nhật email người dùng sau khi đăng nhập
+        // updateUserState(email); // Cập nhật email người dùng sau khi đăng nhập
         navigate('/'); // Điều hướng đến trang chủ
       } else {
         if (!name.trim()) {
@@ -96,4 +96,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signin;

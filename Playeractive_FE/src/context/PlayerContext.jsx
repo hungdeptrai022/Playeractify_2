@@ -151,7 +151,6 @@ const PlayerContextProvider = (props) => {
   };
 
   const contextValue = {
-    
     user,
     updateUserState,
   };

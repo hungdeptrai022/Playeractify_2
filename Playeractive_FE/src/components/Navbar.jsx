@@ -19,7 +19,7 @@ const Navbar = () => {
   const [isListening, setIsListening] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const { pause } = useContext(PlayerContext);
+  
 
   //Search with beat
   const [isRecording, setIsRecording] = useState(false);
@@ -87,13 +87,13 @@ const Navbar = () => {
 
   //Login
   const handleSignInClick = () => {
-    pause();
-    navigate("/signin");
+    
+    navigate("/singin");
   };
   const handleLogoutClick = async () => {
     try {
       await signOut(auth);
-      navigate('/singin');
+      navigate('/');
       setDropdownOpen(false);
     } catch (error) {
       console.error('Logout error:', error);
