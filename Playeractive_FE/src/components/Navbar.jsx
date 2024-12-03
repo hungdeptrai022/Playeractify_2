@@ -18,6 +18,7 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { player } = useContext(PlayerContext);
   const dropdownRef = useRef(null);
   
 
@@ -87,7 +88,9 @@ const Navbar = () => {
 
   //Login
   const handleSignInClick = () => {
-    
+    if (player) {
+      player.pause(); // Dừng phát nhạc
+    }
     navigate("/singin");
   };
   const handleLogoutClick = async () => {

@@ -1,11 +1,12 @@
 import React, { useEffect, useRef } from 'react'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import DisplayHome from './DisplayHome'
-import DisplayAlbum from './DisplayAlbum'
-import { albumsData } from '../assets/assets'
+
+
 import Search from './Search'
 import SongsByAlbum from './SongsByAlbum'
 import SongsByArtist from './SongsByArtist'
+import Lyrics from './Lyrics'
 
 
 const Display = () => {
@@ -29,10 +30,11 @@ const Display = () => {
     <div ref={displayRef} className='w-[100%] m-2 px-6 pt-4 rounded bg-[#121212] text-white overflow-auto lg:w-[75%] lg:ml-0'>
         <Routes>
             <Route path='/' element = {<DisplayHome/>}/>
-            <Route path='/album/:id' element = {<DisplayAlbum/>}/>
+            
             <Route path='/search' element = {<Search/>}/>
             <Route path='/search/songs-by-album/:albumId' element = {<SongsByAlbum/>}/>
             <Route path='/search/songs-by-artist/:artistId' element = {<SongsByArtist/>}/>
+            <Route path='/lyrics/:trackId' element = {<Lyrics/>}/>
         </Routes>
     </div>
   )

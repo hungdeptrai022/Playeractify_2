@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { useParams } from "react-router-dom";
+import { useParams,useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import { PlayerContext } from "../context/PlayerContext";
 import { useAlbumColor } from '../hooks/useAlbumColor';
@@ -14,6 +14,7 @@ const SongsByArtist = () => {
   const { playFullTrack, isReady } = useContext(PlayerContext);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!spotifyToken || !artistId) return;
@@ -65,6 +66,10 @@ const SongsByArtist = () => {
 
     fetchArtistData();
   }, [artistId, spotifyToken]);
+  const handleAlbumClick = (albumId) => {
+    navigate(`/search/songs-by-album/${albumId}`); // Điều hướng đến trang SongsByAlbum
+  };
+
 
   const handlePlayTrack = async (track) => {
     try {
@@ -164,7 +169,7 @@ const SongsByArtist = () => {
                   />
                   <span className="truncate">{track.name}</span>
                 </div>
-                <p className="text-[15px] truncate">{track.album.name}</p>
+                <p className="text-[15px] truncate" onClick={()=>handleAlbumClick(track.album.id)}>{track.album.name}</p>
                 <p className="text-[15px] hidden sm:block">{track.album.release_date}</p>
                 <p className="text-[15px]">{formatDuration(track.duration_ms)}</p>
               </div>

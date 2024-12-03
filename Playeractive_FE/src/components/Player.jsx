@@ -1,6 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { assets } from "../assets/assets";
 import { PlayerContext } from "../context/PlayerContext";
+import { useNavigate } from "react-router-dom";
 
 const Player = () => {
   const {
@@ -17,6 +18,7 @@ const Player = () => {
   const [volume, setVolume] = useState(100);
   const [isHovering, setIsHovering] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!player) return;
@@ -122,6 +124,12 @@ const Player = () => {
     }
   };
 
+  const handleLyricsClick = () => {
+    if (currentTrack) {
+      navigate(`/lyrics/${currentTrack.id}`);
+    }
+  };
+
   return (
     <div className="h-[10%] bg-black flex justify-between items-center text-white px-4">
       {/* Track Info */}
@@ -185,6 +193,12 @@ const Player = () => {
             src={assets.loop_icon} 
             alt="" 
           />
+          {/* <img 
+            className="w-4 cursor-pointer" 
+            src={assets.mic_icon} 
+            alt="Lyrics" 
+            
+          /> */}
         </div>
 
         {/* Progress Bar */}
@@ -215,7 +229,7 @@ const Player = () => {
       <div className="hidden lg:flex items-center gap-2 opacity-75">
        
         <img className="w-4" src={assets.plays_icon} alt="" />
-        <img className="w-4" src={assets.mic_icon} alt="" />
+        <img className="w-4 hover:cursor-pointer" src={assets.mic_icon} alt="" onClick={handleLyricsClick}  />
         <img className="w-4" src={assets.queue_icon} alt="" />
         <img className="w-4" src={assets.speaker_icon} alt="" />
         {isMuted ? (
