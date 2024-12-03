@@ -103,7 +103,7 @@ const Navbar = () => {
     }
   };
   const handleProfileClick = () => {
-    navigate("/Userprofile");
+    navigate("/userprofile");
     setDropdownOpen(false);
   };
 
