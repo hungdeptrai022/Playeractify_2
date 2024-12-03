@@ -169,7 +169,7 @@ const SongsByArtist = () => {
                   />
                   <span className="truncate">{track.name}</span>
                 </div>
-                <p className="text-[15px] truncate" onClick={()=>handleAlbumClick(track.album.id)}>{track.album.name}</p>
+                <p className="text-[15px] truncate hover:underline" onClick={()=>handleAlbumClick(track.album.id)}>{track.album.name}</p>
                 <p className="text-[15px] hidden sm:block">{track.album.release_date}</p>
                 <p className="text-[15px]">{formatDuration(track.duration_ms)}</p>
               </div>

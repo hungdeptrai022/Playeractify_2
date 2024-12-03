@@ -144,7 +144,7 @@ const SongsByAlbum = () => {
                   {albumInfo?.artists?.map(artist => (
                     <span 
                       key={artist.id} 
-                      className="cursor-pointer" 
+                      className="cursor-pointer hover:underline" 
                       onClick={() => navigate(`/search/songs-by-artist/${artist.id}`)}
                     >
                       {artist.name}

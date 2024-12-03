@@ -421,7 +421,7 @@ const Search = () => {
 
   return (
     <><Navbar />
-      <div className="p-4 text-white mt-16 flex flex-col items-center">
+      <div className="p-4 text-white  flex flex-col items-center">
         <h1 className="text-2xl mb-4">Search Results for "{query}"</h1>
 
         {isLoading && <p>Loading...</p>}
@@ -450,7 +450,7 @@ const Search = () => {
                     {track.artists.map((artist) => (
                       <span
                         key={artist.id}
-                        className="cursor-pointer"
+                        className="cursor-pointer hover:underline"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigateToSongsByArtist(artist.id);
@@ -477,6 +477,10 @@ const Search = () => {
 
         {searchType === 'artist' && (
           <div>
+            <div className="mb-4">  
+              <h2 className="my-5 font-bold text-2xl">Genres</h2>
+              <p>HEHEHEHEHEH</p>
+            </div>
             <div className="mb-4">
               <h2 className="my-5 font-bold text-2xl">Artists</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -519,7 +523,7 @@ const Search = () => {
                       {track.artists.map((artist) => (
                         <span
                           key={artist.id}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:underline"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigateToSongsByArtist(artist.id);
@@ -592,7 +596,7 @@ const Search = () => {
                     {track.artists.map((artist) => (
                       <span
                         key={artist.id}
-                        className="cursor-pointer"
+                        className="cursor-pointer cursor:underline"
                         onClick={(e) => {
                           e.stopPropagation();
                           navigateToSongsByArtist(artist.id);
@@ -731,7 +735,7 @@ const Search = () => {
                       {track.artists.map((artist) => (
                         <span
                           key={artist.id}
-                          className="cursor-pointer"
+                          className="cursor-pointer hover:underline"
                           onClick={(e) => {
                             e.stopPropagation();
                             navigateToSongsByArtist(artist.id);
