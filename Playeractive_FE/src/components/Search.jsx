@@ -301,7 +301,7 @@ const Search = () => {
           }
         } else {
           const response = await fetch(
-           `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=artist,track,album&limit=30`,
+           `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=artist,track,album&limit=8`,
             {
               headers: {
                 Authorization: `Bearer ${spotifyToken}`,
@@ -477,10 +477,6 @@ const Search = () => {
 
         {searchType === 'artist' && (
           <div>
-            <div className="mb-4">  
-              <h2 className="my-5 font-bold text-2xl">Genres</h2>
-              <p>HEHEHEHEHEH</p>
-            </div>
             <div className="mb-4">
               <h2 className="my-5 font-bold text-2xl">Artists</h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">

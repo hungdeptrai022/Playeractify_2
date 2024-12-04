@@ -123,11 +123,9 @@ const SongsByArtist = () => {
 
       <div className="relative z-10">
         <Navbar />
-        
-        <div className="px-8 pt-20">
-          <div className="mt-10 flex gap-8 flex-col md:flex-row md:items-end">
+          <div className="mt-1 flex gap-8 flex-col md:flex-row md:items-end">
             <img 
-              className="w-48 h-48 rounded-full shadow-xl object-cover" 
+              className="ml-5 w-48 h-48 rounded-full shadow-xl object-cover" 
               src={artistInfo?.images[0]?.url} 
               alt={artistInfo?.name} 
             />
@@ -175,7 +173,7 @@ const SongsByArtist = () => {
               </div>
             ))}
           </div>
-        </div>
+        
       </div>
     </div>
   );

@@ -226,12 +226,8 @@ const Player = () => {
       </div>
 
       {/* Volume Controls */}
-      <div className="hidden lg:flex items-center gap-2 opacity-75">
-       
-        <img className="w-4" src={assets.plays_icon} alt="" />
-        <img className="w-4 hover:cursor-pointer" src={assets.mic_icon} alt="" onClick={handleLyricsClick}  />
-        <img className="w-4" src={assets.queue_icon} alt="" />
-        <img className="w-4" src={assets.speaker_icon} alt="" />
+      <div className="hidden lg:flex items-center gap-2 opacity-75 transform -translate-x-[30px]">
+        {/* <img className="w-4 hover:cursor-pointer" src={assets.mic_icon} alt="" onClick={handleLyricsClick}  /> */}
         {isMuted ? (
           <img className="w-5" src={assets.mute_icon} alt="Mute" onClick={handleVolumeToggle} />
         ) : (
@@ -245,8 +241,6 @@ const Player = () => {
           onChange={handleVolumeChange}
           className="w-20 h-1"
         />
-        <img className="w-4" src={assets.mini_player_icon} alt="" />
-        <img className="w-4" src={assets.zoom_icon} alt="" />
       </div>
     </div>
   );

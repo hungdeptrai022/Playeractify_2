@@ -124,12 +124,10 @@ const SongsByAlbum = () => {
 
       <div className="relative z-10">
         <Navbar />
-        
-        <div className="px-8 pt-20">
-          <div className="mt-10 flex gap-8 flex-col md:flex-row md:items-end">
+          <div className="mt-1 flex gap-8 flex-col md:flex-row md:items-end">
             {albumInfo?.images?.[0]?.url && (
               <img 
-                className="w-48 h-48 rounded shadow-xl" 
+                className="ml-5 w-48 h-48 rounded shadow-xl" 
                 src={albumInfo.images[0].url} 
                 alt={albumInfo.name} 
               />
@@ -188,7 +186,7 @@ const SongsByAlbum = () => {
               </div>
             ))}
           </div>
-        </div>
+        
       </div>
     </div>
   );
