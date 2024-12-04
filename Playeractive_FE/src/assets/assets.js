@@ -48,6 +48,7 @@ import qrcode from './qrcode.png'
 import music_note from './music_note.png'
 import mute_icon from './volume_mute.png'
 import volume_up from './volume_up.png'
+import btec_logo from './btec_logo.png'
 
 export const assets = {
     bell_icon,
@@ -79,117 +80,9 @@ export const assets = {
     qrcode,
     music_note,
     mute_icon,
-    volume_up
+    volume_up,
+    btec_logo
 }
 
-export const albumsData = [
-    {   
-        id:0,
-        name: "Top 50 Global",
-        image: img8,
-        desc:"Your weekly update of the most played tracks",
-        bgColor:"#2a4365"
-    },
-    {   
-        id:1,
-        name: "Top 50 India",
-        image: img9,
-        desc:"Your weekly update of the most played tracks",
-        bgColor:"#22543d"
-    },
-    {   
-        id:2,
-        name: "Trending India",
-        image: img10,
-        desc:"Your weekly update of the most played tracks",
-        bgColor:"#742a2a"
-    },
-    {   
-        id:3,
-        name: "Trending Global",
-        image: img16,
-        desc:"Your weekly update of the most played tracks",
-        bgColor:"#44337a"
-    },
-    {   
-        id:4,
-        name: "Mega Hits,",
-        image: img11,
-        desc:"Your weekly update of the most played tracks",
-        bgColor:"#234e52"
-    },
-    {   
-        id:5,
-        name: "Happy Favorites",
-        image: img15,
-        desc:"Your weekly update of the most played tracks",
-        bgColor:"#744210"
-    }
-]
 
-export const songsData = [
-    {
-        song_id1:0,
-        song_name1: "Song One",
-        song_image1: img1,
-        file:song1,
-        song_artist1:"D-Low",
-        duration:"3:00"
-    },
-    {
-        song_id1:1,
-        song_name1: "Song Two",
-        song_image1: img2,
-        file:song2,
-        song_artist1:"Put a smile on your face with these happy tunes",
-        duration:"2:20"
-    },
-    {
-        song_id1:2,
-        song_name1: "Song Three",
-        song_image1: img3,
-        file:song3,
-        song_artist1:"Put a smile on your face with these happy tunes",
-        duration:"2:32"
-    },
-    {
-        song_id1:3,
-        song_name1: "Object",
-        song_image1: img4,
-        file:object,
-        song_artist1:"Put a smile on your face with these happy tunes",
-        duration:"3:14"
-    },
-    {
-        song_id1:4,
-        song_name1: "Song Five",
-        song_image1: img5,
-        file:song2,
-        song_artist1:"Put a smile on your face with these happy tunes",
-        duration:"3:10"
-    },
-    {
-        song_id1:5,
-        song_name1: "Song Six",
-        song_image1: img14    ,
-        file:song3,
-        song_artist1:"Put a smile on your face with these happy tunes",
-        duration:"2:45"
-    },
-    {
-        song_id1:6,
-        song_name1: "Song Seven",
-        song_image1: img7,
-        file:song1,
-        song_artist1:"Put a smile on your face with these happy tunes",
-        duration:"2:18"
-    },
-    {
-        song_id1:7,
-        song_name1: "Song Eight",
-        song_image1: img12,
-        file:song2,
-        song_artist1:"Put a smile on your face with these happy tunes",
-        duration:"2:35"
-    }
-]
+

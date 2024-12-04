@@ -48,7 +48,7 @@ const UserProfile = () => {
                 <div className="profileContainer w-full max-w-2xl p-6 rounded-lg shadow-lg">
                     <div className="profileHeader mb-6">
                         <div className="profileInfo flex items-center">
-                            <img src={assets.spotify_logo} alt="Avatar" className="avatar w-24 h-24 rounded-full" />
+                            <img src={assets.btec_logo} alt="Avatar" className="avatar w-24 h-24 rounded-full" />
                             <div className="userDetails ml-4">
                                 <h2 className="text-2xl font-bold">{userData?.name || 'Name not available'}</h2>
                                 <p className="text-gray-400">{userEmail || 'Email not available'}</p>
