@@ -101,17 +101,17 @@ const PlayerContextProvider = (props) => {
     };
   }, [spotifyToken]);
 
-  const playFullTrack = async (trackUri) => {
+  const playFullTrack = async (trackUris, offset = 0) => {
     if (isInitializing) {
       alert("Spotify Player đang khởi tạo, vui lòng đợi trong giây lát...");
       return;
     }
-
+  
     if (!deviceId || !isReady) {
       alert("Spotify Player chưa sẵn sàng. Vui lòng thử lại sau!");
       return;
     }
-
+  
     try {
       // Đặt thiết bị này làm thiết bị active trước khi phát
       await fetch('https://api.spotify.com/v1/me/player', {
@@ -125,17 +125,20 @@ const PlayerContextProvider = (props) => {
           play: false
         })
       });
-
-      // Phát nhạc
+  
+      // Phát nhạc với danh sách bài hát và vị trí bắt đầu
       const response = await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
         method: 'PUT',
-        body: JSON.stringify({ uris: [trackUri] }),
+        body: JSON.stringify({
+          uris: Array.isArray(trackUris) ? trackUris : [trackUris],
+          offset: { position: offset }
+        }),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${spotifyToken}`
         },
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error.message);

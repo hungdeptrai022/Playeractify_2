@@ -73,9 +73,13 @@ const SongsByAlbum = () => {
     return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
   };
 
-  const handlePlayTrack = async (track) => {
+  const handlePlayTrack = async (track, index) => {
     try {
-      await playFullTrack(`spotify:track:${track.id}`);
+      // Tạo danh sách URI của tất cả các bài hát trong album
+      const albumTracks = songs.map(song => `spotify:track:${song.id}`);
+      
+      // Phát bài hát được chọn và queue các bài còn lại
+      await playFullTrack(albumTracks, index);
     } catch (error) {
       console.error("Error playing track:", error);
       alert("Không thể phát bài hát này. Vui lòng đảm bảo bạn có tài khoản Spotify Premium!");
@@ -167,7 +171,7 @@ const SongsByAlbum = () => {
             {songs.map((track, index) => (
               <div
                 key={track.id}
-                onClick={() => handlePlayTrack(track)}
+                onClick={() => handlePlayTrack(track, index)}
                 className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center 
                            text-[#a7a7a7] hover:bg-[#ffffff1a] cursor-pointer 
                            transition-colors duration-200"

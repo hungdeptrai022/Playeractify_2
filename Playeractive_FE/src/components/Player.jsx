@@ -57,14 +57,30 @@ const Player = () => {
   };
 
   const handlePrevious = () => {
-    if (!player) return;
+    if (!player || !playerState) return;
+    
+    // Nếu album chỉ có 1 bài, restart bài hát hiện tại
+    if (playerState.track_window.next_tracks.length === 0 && 
+        playerState.track_window.previous_tracks.length === 0) {
+      player.seek(0);
+      return;
+    }
+  
     player.previousTrack().then(() => {
       console.log("Playing previous track");
     });
   };
 
   const handleNext = () => {
-    if (!player) return;
+    if (!player || !playerState) return;
+  
+    // Nếu album chỉ có 1 bài, restart bài hát hiện tại
+    if (playerState.track_window.next_tracks.length === 0 && 
+        playerState.track_window.previous_tracks.length === 0) {
+      player.seek(0);
+      return;
+    }
+  
     player.nextTrack().then(() => {
       console.log("Playing next track");
     });
