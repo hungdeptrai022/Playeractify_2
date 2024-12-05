@@ -11,7 +11,9 @@ const DisplayHome = () => {
     const { playFullTrack } = useContext(PlayerContext);
     const { spotifyToken } = useAuthContext();
     const navigate = useNavigate();
-
+    const navigateToSongsByArtist = (artistId) => {
+        navigate(`/search/songs-by-artist/${artistId}`);
+      };
     useEffect(() => {
         if (!spotifyToken) return;
 
@@ -87,7 +89,7 @@ const DisplayHome = () => {
                                 onClick={() => navigate(`/search/songs-by-album/${album.id}`)}
                             >
                                 <img src={album.images[0]?.url} alt={album.name} className="rounded" />
-                                <h2 className="font-bold mt-2 mb-1">{album.name}</h2>
+                                <h2 className="font-bold mt-2 mb-1 text-center">{album.name}</h2>
                             </div>
                         ))}
                     </div>
@@ -103,10 +105,21 @@ const DisplayHome = () => {
                                 onClick={() => handlePlayTrack(track)} // Gọi handlePlayTrack
                             >
                                 <img src={track.album.images[0]?.url} alt={track.name} className='rounded' />
-                                <h2 className='font-bold mt-2 mb-1'>{track.name}</h2>
-                                <p className='text-slate-200 text-sm'>
-                                    {track.artists.map(artist => artist.name).join(', ')}
-                                </p>
+                                <h2 className='font-bold mt-2 mb-1 truncate text-center'>{track.name}</h2>
+                                <p className="text-slate-200 text-sm text-center">
+                      {track.artists.map((artist) => (
+                        <span
+                          key={artist.id}
+                          className="cursor-pointer hover:underline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigateToSongsByArtist(artist.id);
+                          }}
+                        >
+                          {artist.name}
+                        </span>
+                      )).reduce((prev, curr) => [prev, ', ', curr])}
+                    </p>
                             </div>
                         ))}
                     </div>
