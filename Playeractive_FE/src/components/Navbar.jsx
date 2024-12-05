@@ -141,6 +141,7 @@ const Navbar = () => {
               navigate(`/search?q=${encodeURIComponent(title)}`);
             } else {
               alert("Không tìm thấy bài hát.");
+              mediaRecorder.stream.getTracks().forEach(track => track.stop());
             }
           } catch (error) {
             console.error("Lỗi khi phân tích âm thanh:", error);
