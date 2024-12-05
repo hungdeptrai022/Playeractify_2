@@ -201,7 +201,13 @@ const Navbar = () => {
 
   
 
-  
+  const handleAuthClick = () => {
+    if (user) {
+      // Nếu đã đăng nhập thì logout
+      logout();
+      navigate('/');
+    }
+  };
 
   return (
     <nav className="flex items-center justify-between p-4">
@@ -231,6 +237,12 @@ const Navbar = () => {
           onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           className='bg-stone-800 text-center shadow-inner text-white focus:outline-none ml-2 rounded-2xl w-[max(10vw,250px)] h-[max(2vw,35px)] hover:bg-stone-700 focus:bg-stone-700'
         />
+        {/* <img
+          src={assets.music_note}
+          alt="SearchWithBeat"
+          className="w-6 cursor-pointer"
+          onClick={handleSearchWithBeat}
+        /> */}
         {user ? (
           <img
             src={assets.music_note}

@@ -11,7 +11,7 @@ const SongsByArtist = () => {
   const [artistInfo, setArtistInfo] = useState(null);
   const { colors, loading } = useAlbumColor(artistInfo?.images?.[0]?.url);
   const { spotifyToken } = useAuthContext();
-  const { playFullTrack, isReady } = useContext(PlayerContext);
+  const { playFullTrack, isReady, currentTrackUri } = useContext(PlayerContext);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -167,7 +167,7 @@ const SongsByArtist = () => {
                   />
                   <span className="truncate">{track.name}</span>
                 </div>
-                <p className="text-[15px] truncate hover:underline" onClick={()=>handleAlbumClick(track.album.id)}>{track.album.name}</p>
+                <p className="text-[15px] truncate hover:underline" onClick={(e) => { e.stopPropagation(); handleAlbumClick(track.album.id); }}>{track.album.name}</p>
                 <p className="text-[15px] hidden sm:block">{track.album.release_date}</p>
                 <p className="text-[15px]">{formatDuration(track.duration_ms)}</p>
               </div>
