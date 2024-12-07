@@ -243,7 +243,7 @@ const Player = () => {
 
       {/* Volume Controls */}
       <div className="hidden lg:flex items-center gap-2 opacity-75 transform -translate-x-[30px]">
-        <img className="w-4 hover:cursor-pointer" src={assets.mic_icon} alt="" onClick={handleLyricsClick}  />
+        {/* <img className="w-4 hover:cursor-pointer" src={assets.mic_icon} alt="" onClick={handleLyricsClick}  /> */}
         {isMuted ? (
           <img className="w-5" src={assets.mute_icon} alt="Mute" onClick={handleVolumeToggle} />
         ) : (
