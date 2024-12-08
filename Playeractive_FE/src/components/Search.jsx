@@ -73,7 +73,7 @@ const Search = () => {
       'bin',
     ];
   
-    const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ', 'trốn tìm'];
+    const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ', 'trốn tìm','đi về nhà'];
     const albumPatterns = ['album', 'ep', 'deluxe', 'edition', 'collection', 'đánh đổi'];
     
     // Kiểm tra patterns trước
@@ -148,6 +148,22 @@ const Search = () => {
     const genrePattern = /thể loại|genre/i;
     if (genrePattern.test(query)) {
         return 'genre';
+    }
+
+    // Pattern cho cả tiếng Việt và tiếng Anh
+    const songArtistPatterns = [
+      /^(.+?)\s*[-–]\s*(.+)$/i,         // Pattern "Tên bài - Tên nghệ sĩ"
+      /^(.+?)\s+by\s+(.+)$/i,           // Pattern "Tên bài by Tên nghệ sĩ"
+      /^(.+?)\s+của\s+(.+)$/i,          // Pattern "Tên bài của Tên nghệ sĩ"
+      /^(.+?)\s+do\s+(.+)\s+trình\s+bày$/i,  // Pattern "Tên bài do Tên nghệ sĩ trình bày"
+      /^(.+?)\s+hát\s+bởi\s+(.+)$/i,    // Pattern "Tên bài hát bởi Tên nghệ sĩ"
+    ];
+
+    // Kiểm tra từng pattern
+    for (const pattern of songArtistPatterns) {
+      if (pattern.test(query)) {
+        return 'specific-song';
+      }
     }
 
     // Mặc định trả về song nếu không match với các rule trên
@@ -238,70 +254,36 @@ const Search = () => {
       
       setIsSearching(true);
       const searchType = detectSearchType(query);
-      const cleanQuery = query.replace(/thể loại|genre/i, '').trim(); // Xóa từ khóa thể loại
-      console.log("Query:", query);
-      console.log("Search Type:", searchType);
-
+      
       try {
-        if (searchType === 'genre') {
-            // Tìm kiếm theo thể loại
-            const response = await fetch(
-                `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=playlist&limit=30`, // Tìm kiếm playlist theo thể loại
-                {
-                    headers: {
-                        Authorization: `Bearer ${spotifyToken}`,
-                    },
-                }
-            );
-
-            const data = await response.json();
-            setSongs(data.playlists?.items || []); // Lưu kết quả vào biến songs
-            setArtists([]);
-            setAlbums([]);
-        } else if (searchType === 'lyrics') {
-          const geniusResults = await searchGenius(cleanQuery);
-          const matchedTracks = await matchSpotifyWithGenius(geniusResults);
+        if (searchType === 'specific-song') {
+          // Tìm pattern phù hợp và tách tên bài hát và nghệ sĩ
+          let songName, artistName;
           
-          setSongs(matchedTracks);
-          setArtists([]);
-          setAlbums([]);
-        } else if (searchType === 'top-tracks') {
-          const artistMatchVN = query.match(/các bài hát hay của (.+)/i);
-          const artistMatchEN = query.match(/songs by (.+)/i);
-          const artistName = artistMatchVN ? artistMatchVN[1].trim() : artistMatchEN ? artistMatchEN[1].trim() : null;
-          if (artistName) {
-            
-            // Tìm kiếm nghệ sĩ trên Spotify
-            const artistResponse = await fetch(
-              `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`,
-              {
-                headers: {
-                  Authorization: `Bearer ${accessToken}`
-                }
-              }
-            );
-            const artistData = await artistResponse.json();
-            if (artistData.artists.items.length > 0) {
-              const artistId = artistData.artists.items[0].id;
-              // Lấy top tracks của nghệ sĩ
-              const topTracksResponse = await fetch(
-                `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${spotifyToken}`
-                  }
-                }
-              );
-              const topTracksData = await topTracksResponse.json();
-              setSongs(topTracksData.tracks);
-              setArtists([]);
-              setAlbums([]);
-             
+          const patterns = [
+            /^(.+?)\s*[-–]\s*(.+)$/i,
+            /^(.+?)\s+by\s+(.+)$/i,
+            /^(.+?)\s+của\s+(.+)$/i,
+            /^(.+?)\s+do\s+(.+)\s+trình\s+bày$/i,
+            /^(.+?)\s+hát\s+bởi\s+(.+)$/i,
+          ];
+
+          for (const pattern of patterns) {
+            const match = query.match(pattern);
+            if (match) {
+              [, songName, artistName] = match;
+              break;
             }
           }
-        } else {
+
+          // Loại bỏ các từ khóa không cần thiết từ tên nghệ sĩ
+          artistName = artistName
+            .replace(/(trình bày|hát bởi|ca sĩ)/gi, '')
+            .trim();
+          
+          // Tìm kiếm với điều kiện chính xác
           const response = await fetch(
-           `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=artist,track,album&limit=8`,
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(`track:"${songName}" artist:"${artistName}"`)}&type=track&limit=1`,
             {
               headers: {
                 Authorization: `Bearer ${spotifyToken}`,
@@ -310,9 +292,86 @@ const Search = () => {
           );
 
           const data = await response.json();
-          setArtists(data.artists?.items || []);
           setSongs(data.tracks?.items || []);
-          setAlbums(data.albums?.items || []);
+          setArtists([]);
+          setAlbums([]);
+        } else {
+          const searchType = detectSearchType(query);
+          const cleanQuery = query.replace(/thể loại|genre/i, '').trim(); // Xóa từ khóa thể loại
+          console.log("Query:", query);
+          console.log("Search Type:", searchType);
+
+          if (searchType === 'genre') {
+              // Tìm kiếm theo thể loại
+              const response = await fetch(
+                  `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=playlist&limit=30`, // Tìm kiếm playlist theo thể loại
+                  {
+                      headers: {
+                          Authorization: `Bearer ${spotifyToken}`,
+                      },
+                  }
+              );
+
+              const data = await response.json();
+              setSongs(data.playlists?.items || []); // Lưu kết quả vào biến songs
+              setArtists([]);
+              setAlbums([]);
+          } else if (searchType === 'lyrics') {
+            const geniusResults = await searchGenius(cleanQuery);
+            const matchedTracks = await matchSpotifyWithGenius(geniusResults);
+            
+            setSongs(matchedTracks);
+            setArtists([]);
+            setAlbums([]);
+          } else if (searchType === 'top-tracks') {
+            const artistMatchVN = query.match(/các bài hát hay của (.+)/i);
+            const artistMatchEN = query.match(/songs by (.+)/i);
+            const artistName = artistMatchVN ? artistMatchVN[1].trim() : artistMatchEN ? artistMatchEN[1].trim() : null;
+            if (artistName) {
+              
+              // Tìm kiếm nghệ sĩ trên Spotify
+              const artistResponse = await fetch(
+                `https://api.spotify.com/v1/search?q=${encodeURIComponent(artistName)}&type=artist&limit=1`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`
+                  }
+                }
+              );
+              const artistData = await artistResponse.json();
+              if (artistData.artists.items.length > 0) {
+                const artistId = artistData.artists.items[0].id;
+                // Lấy top tracks của nghệ sĩ
+                const topTracksResponse = await fetch(
+                  `https://api.spotify.com/v1/artists/${artistId}/top-tracks?market=US`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${spotifyToken}`
+                    }
+                  }
+                );
+                const topTracksData = await topTracksResponse.json();
+                setSongs(topTracksData.tracks);
+                setArtists([]);
+                setAlbums([]);
+               
+              }
+            }
+          } else {
+            const response = await fetch(
+             `https://api.spotify.com/v1/search?q=${encodeURIComponent(cleanQuery)}&type=artist,track,album&limit=8`,
+              {
+                headers: {
+                  Authorization: `Bearer ${spotifyToken}`,
+                },
+              }
+            );
+
+            const data = await response.json();
+            setArtists(data.artists?.items || []);
+            setSongs(data.tracks?.items || []);
+            setAlbums(data.albums?.items || []);
+          }
         }
       } catch (error) {
         console.error("Error searching:", error);

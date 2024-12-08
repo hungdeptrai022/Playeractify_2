@@ -163,27 +163,36 @@ const Navbar = () => {
   
   
 
-  const handleVoiceSearch = () => {
+  const [showVoiceModal, setShowVoiceModal] = useState(false);
+  const [recognition, setRecognition] = useState(null);
 
+  const handleVoiceSearch = () => {
     if (!('webkitSpeechRecognition' in window)) {
       alert('Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói');
       return;
     }
     
-    const recognition = new window.webkitSpeechRecognition();
-    recognition.lang = 'vi-VN';
-    recognition.continuous = false;
-    recognition.interimResults = false;
+    const newRecognition = new window.webkitSpeechRecognition();
+    setRecognition(newRecognition);
+    
+    newRecognition.lang = 'vi-VN';
+    newRecognition.continuous = false;
+    newRecognition.interimResults = false;
 
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => {
+    newRecognition.onstart = () => {
+      setIsListening(true);
+      setShowVoiceModal(true);
+    };
+    
+    newRecognition.onend = () => {
       setIsListening(false);
+      setShowVoiceModal(false);
       if (searchQuery) {
         handleSearch();
       }
     };
 
-    recognition.onresult = async (event) => {
+    newRecognition.onresult = async (event) => {
       const transcript = event.results[0][0].transcript;
       setSearchQuery(transcript);
       console.log('Kết quả nhận diện:', transcript);
@@ -196,11 +205,16 @@ const Navbar = () => {
       }
     };
 
-    recognition.start();
+    newRecognition.start();
   };
 
-
-  
+  const handleCloseVoiceModal = () => {
+    if (recognition) {
+      recognition.stop();
+    }
+    setShowVoiceModal(false);
+    setIsListening(false);
+  };
 
   const handleAuthClick = () => {
     if (user) {
@@ -305,6 +319,27 @@ const Navbar = () => {
           </>
         )}
       </div>
+
+      {showVoiceModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#212121] rounded-lg p-8 flex flex-col items-center gap-4">
+            <h2 className="text-white text-xl">Đang nghe...</h2>
+            <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center">
+              <img 
+                src={assets.micro_icon}
+                alt="Microphone"
+                className="w-8 h-8"
+              />
+            </div>
+            <button 
+              onClick={handleCloseVoiceModal}
+              className="absolute top-4 right-4 text-white text-2xl"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
