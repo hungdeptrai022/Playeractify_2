@@ -502,7 +502,7 @@ const Search = () => {
                     alt={track.name}
                     className="w-full h-40 object-cover rounded-md mb-3"
                   />
-                  <h3 className="font-bold mt-2 mb-1 text-center">
+                  <h3 className="font-bold mt-2 mb-1 text-center truncate">
                     {track.name}
                   </h3>
                   <p className="text-slate-200 text-sm text-center">
@@ -571,7 +571,7 @@ const Search = () => {
                       alt={track.name}
                       className="w-full h-40 object-cover rounded-md mb-3"
                     />
-                    <h3 className="font-bold mt-2 mb-1 text-center">
+                    <h3 className="font-bold mt-2 mb-1 text-center truncate">
                       {track.name}
                     </h3>
                     <p className="text-slate-200 text-sm text-center">
@@ -644,7 +644,7 @@ const Search = () => {
                     alt={track.name}
                     className="w-full h-40 object-cover rounded-md mb-3"
                   />
-                  <h3 className="font-bold mt-2 mb-1 text-center">
+                  <h3 className="font-bold mt-2 mb-1 text-center truncate">
                     {track.name}
                   </h3>
                   <p className="text-slate-200 text-sm text-center">
