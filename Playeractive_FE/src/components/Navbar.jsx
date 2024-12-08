@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
 import { assets } from '../assets/assets';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { signOut } from "firebase/auth";
 import { auth } from "../firebase";
 import { useAuthContext } from '../context/AuthContext';
@@ -13,6 +13,7 @@ const AUDD_API_KEY = 'd9636c27326a580442a26a117397a43f';
 
 const Navbar = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, spotifyUser, logout, userData } = useAuthContext();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,12 +21,15 @@ const Navbar = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const { player } = useContext(PlayerContext);
   const dropdownRef = useRef(null);
+  const [isInitialSearch, setIsInitialSearch] = useState(true);
+  const searchInputRef = useRef(null);
   
 
   //Search with beat
   const [isRecording, setIsRecording] = useState(false);
   const [searchResult, setSearchResult] = useState(null);
   const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
   const audioChunks = useRef([]);
   
 
@@ -51,17 +55,50 @@ const Navbar = () => {
 
     fetchAccessToken();
   }, []);
-
-  // Auto search when searchQuery changes
   useEffect(() => {
-    if (searchQuery.trim()) {
-      const timer = setTimeout(() => {
-        handleSearch();
-      }, 550);
-
-      return () => clearTimeout(timer);
+    if (searchInputRef.current) {
+      searchInputRef.current.focus();
     }
-  }, [searchQuery]);
+  }, [location.pathname, location.search]); // Giữ focus khi URL thay đổi
+
+  // Đồng bộ searchQuery với URL
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const queryParam = searchParams.get('q');
+    
+    if (location.pathname === '/search' && queryParam) {
+      setSearchQuery(decodeURIComponent(queryParam));
+    }
+  }, [location]);
+
+  // Xử lý tìm kiếm với delay dài hơn
+  useEffect(() => {
+    if (isInitialSearch && searchQuery.trim()) {
+      setIsInitialSearch(false);
+      return;
+    }
+
+    if (!isInitialSearch) {
+      if (searchQuery.trim()) {
+        // Tăng delay lên 500ms để có thời gian nhập khoảng trắng
+        const timer = setTimeout(() => {
+          handleSearch();
+        }, 500);
+        return () => clearTimeout(timer);
+      } else {
+        // Giữ delay ngắn cho việc quay về home và giữ focus
+        const timer = setTimeout(() => {
+          if (location.pathname !== '/') {
+            navigate('/');
+          }
+          if (searchInputRef.current) {
+            searchInputRef.current.focus();
+          }
+        }, 100);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [searchQuery, isInitialSearch, navigate, location.pathname]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -82,7 +119,7 @@ const Navbar = () => {
 
   const handleSearch = () => {
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
 
@@ -107,69 +144,121 @@ const Navbar = () => {
     setDropdownOpen(false);
   };
 
-  const handleSearchWithBeat = () => {
+  const [showBeatModal, setShowBeatModal] = useState(false);
+  const [wasPlaying, setWasPlaying] = useState(false);
+
+  const handleSearchWithBeat = async () => {
     if (!navigator.mediaDevices || !("AudioContext" in window)) {
       alert("Trình duyệt của bạn không hỗ trợ ghi âm.");
       return;
     }
-  
+
+    if (player) {
+      const state = await player.getCurrentState();
+      setWasPlaying(!state?.paused);
+      player.pause();
+    }
+
+    setShowBeatModal(true);
+    setIsRecording(true);
+
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
     navigator.mediaDevices.getUserMedia({ audio: true })
       .then((stream) => {
+        streamRef.current = stream;
         const mediaRecorder = new MediaRecorder(stream);
+        mediaRecorderRef.current = mediaRecorder;
         const audioChunks = [];
-  
+
         mediaRecorder.ondataavailable = (event) => {
           audioChunks.push(event.data);
         };
-  
+
         mediaRecorder.onstop = async () => {
+          setIsRecording(false);
           const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
           const formData = new FormData();
           formData.append("file", audioBlob);
           formData.append("api_key", AUDD_API_KEY);
-  
+
           try {
             const response = await axios.post("https://api.audd.io/", formData, {
               headers: { "Content-Type": "multipart/form-data" },
             });
-  
+
             const { status, result } = response.data;
             if (status === "success" && result) {
               const { artist, title } = result;
-              alert(`Tìm thấy bài hát: ${title} của nghệ sĩ ${artist}`);
-              navigate(`/search?q=${encodeURIComponent(title)}`);
+              const searchText = `${title} ${artist}`;
+              
+              if (window.confirm(`Đã tìm thấy: "${title}" bởi ${artist}\nBạn có muốn tìm kiếm bài hát này không?`)) {
+                setSearchQuery(searchText);
+                navigate(`/search?q=${encodeURIComponent(searchText)}`);
+              }
             } else {
               alert("Không tìm thấy bài hát.");
-              mediaRecorder.stream.getTracks().forEach(track => track.stop());
             }
           } catch (error) {
             console.error("Lỗi khi phân tích âm thanh:", error);
+          } finally {
+            setShowBeatModal(false);
+            if (streamRef.current) {
+              streamRef.current.getTracks().forEach(track => track.stop());
+              streamRef.current = null;
+            }
+            mediaRecorderRef.current = null;
           }
         };
-  
+
         mediaRecorder.start();
-        setIsRecording(true);
-  
         setTimeout(() => {
-          mediaRecorder.stop(); // Dừng ghi âm sau ? giây
-          setIsRecording(false);
+          if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+            mediaRecorder.stop();
+          }
         }, 8000);
       })
       .catch((error) => {
         console.error("Lỗi khi ghi âm:", error);
+        setIsRecording(false);
+        setShowBeatModal(false);
       });
   };
-  
-  
+
+  const handleCloseBeatModal = () => {
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
+      mediaRecorderRef.current.onstop = null;
+      mediaRecorderRef.current.stop();
+    }
+    
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    
+    if (wasPlaying && player) {
+      player.resume();
+    }
+    
+    mediaRecorderRef.current = null;
+    setShowBeatModal(false);
+    setIsRecording(false);
+    setWasPlaying(false);
+  };
 
   const [showVoiceModal, setShowVoiceModal] = useState(false);
   const [recognition, setRecognition] = useState(null);
 
   const handleVoiceSearch = () => {
     if (!('webkitSpeechRecognition' in window)) {
-      alert('Trình duyệt của bạn không hỗ trợ tìm kiếm bằng giọng nói');
+      alert('Trình duyệt của bạn không hỗ trợ tìm ki�m bằng giọng nói');
       return;
+    }
+    
+    if (player) {
+      player.getCurrentState().then(state => {
+        setWasPlaying(!state?.paused);
+        player.pause();
+      });
     }
     
     const newRecognition = new window.webkitSpeechRecognition();
@@ -187,22 +276,22 @@ const Navbar = () => {
     newRecognition.onend = () => {
       setIsListening(false);
       setShowVoiceModal(false);
-      if (searchQuery) {
-        handleSearch();
-      }
     };
 
-    newRecognition.onresult = async (event) => {
+    newRecognition.onresult = (event) => {
       const transcript = event.results[0][0].transcript;
       setSearchQuery(transcript);
-      console.log('Kết quả nhận diện:', transcript);
+      
+      // Đảm bảo chuyển hướng sau khi đã cập nhật searchQuery
+      setTimeout(() => {
+        navigate(`/search?q=${encodeURIComponent(transcript)}`);
+      }, 100);
+    };
 
-      // Search with Audd.io if it's a song name
-      const audioSearchResult = await searchSongWithAudd(transcript);
-      if (audioSearchResult) {
-        setSearchQuery(audioSearchResult);
-        handleSearch();
-      }
+    newRecognition.onerror = (event) => {
+      console.error('Speech recognition error:', event.error);
+      setIsListening(false);
+      setShowVoiceModal(false);
     };
 
     newRecognition.start();
@@ -211,9 +300,16 @@ const Navbar = () => {
   const handleCloseVoiceModal = () => {
     if (recognition) {
       recognition.stop();
+      setRecognition(null);
     }
+
+    if (wasPlaying && player) {
+      player.resume();
+    }
+
     setShowVoiceModal(false);
     setIsListening(false);
+    setWasPlaying(false);
   };
 
   const handleAuthClick = () => {
@@ -245,6 +341,7 @@ const Navbar = () => {
       {/* Search Input */}
       <div className='flex items-center gap-3 flex-row'>
         <input
+          ref={searchInputRef}
           type="text"
           placeholder='What do you want to play'
           value={searchQuery}
@@ -320,23 +417,70 @@ const Navbar = () => {
         )}
       </div>
 
+      {/* SearchByBeat Modal */}
+      {showBeatModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-[#212121] rounded-lg p-8 flex flex-col items-center gap-4 relative">
+            <button 
+              onClick={handleCloseBeatModal}
+              className="absolute top-2 right-2 text-gray-400 hover:text-white"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
+            <h2 className="text-white text-xl">Đang nghe bài hát...</h2>
+            
+            <div className={`w-16 h-16 rounded-full bg-purple-600 flex items-center justify-center ${isRecording ? 'animate-pulse' : ''}`}>
+              <img 
+                src={assets.music_note}
+                alt="Music Note"
+                className="w-8 h-8"
+              />
+            </div>
+            
+            {/* {isRecording && (
+              // <div className="flex gap-2 mt-4">
+              //   <div className="w-2 h-8 bg-purple-500 animate-[soundwave_0.5s_ease-in-out_infinite]"></div>
+              //   <div className="w-2 h-8 bg-purple-500 animate-[soundwave_0.5s_ease-in-out_infinite_0.1s]"></div>
+              //   <div className="w-2 h-8 bg-purple-500 animate-[soundwave_0.5s_ease-in-out_infinite_0.2s]"></div>
+              //   <div className="w-2 h-8 bg-purple-500 animate-[soundwave_0.5s_ease-in-out_infinite_0.3s]"></div>
+              // </div>
+            )} */}
+            
+            <p className="text-gray-300 text-sm mt-4">
+              {isRecording ? 'Đang nhận diện bài hát...' : 'Đang khởi động...'}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Voice Search Modal */}
       {showVoiceModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-[#212121] rounded-lg p-8 flex flex-col items-center gap-4">
+          <div className="bg-[#212121] rounded-lg p-8 flex flex-col items-center gap-4 relative">
+            <button 
+              onClick={handleCloseVoiceModal}
+              className="absolute top-2 right-2 text-gray-400 hover:text-white"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            
             <h2 className="text-white text-xl">Đang nghe...</h2>
-            <div className="w-16 h-16 rounded-full bg-red-600 flex items-center justify-center">
+            
+            <div className={`w-16 h-16 rounded-full bg-red-600 flex items-center justify-center ${isListening ? 'animate-pulse' : ''}`}>
               <img 
                 src={assets.micro_icon}
                 alt="Microphone"
                 className="w-8 h-8"
               />
             </div>
-            <button 
-              onClick={handleCloseVoiceModal}
-              className="absolute top-4 right-4 text-white text-2xl"
-            >
-              ×
-            </button>
+            <p className="text-gray-300 text-sm mt-4">
+              {isListening ? 'Hãy nói từ khóa bạn muốn tìm kiếm...' : 'Đang khởi động...'}
+            </p>
           </div>
         </div>
       )}

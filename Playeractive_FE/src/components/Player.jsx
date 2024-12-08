@@ -151,17 +151,17 @@ const Player = () => {
       {/* Track Info */}
       <div className="hidden lg:flex items-center gap-4">
         <img 
-          className="w-12" 
-          src={currentTrack?.album.images[0]?.url} 
+          className={`w-12 ${!currentTrack && 'opacity-50'}`}
+          src={currentTrack?.album.images[0]?.url || assets.default_album}
           alt="" 
         />
         <div>
-          <h3 className="font-bold mt-2 mb-1 w-[250px] group overflow-hidden cursor-pointer whitespace-nowrap">
+          <h3 className={`font-bold mt-2 mb-1 w-[250px] group overflow-hidden ${!currentTrack && 'opacity-50'} whitespace-nowrap`}>
             <span className="block group-hover:animate-text-slide">
               {currentTrack?.name || "No song playing"}
             </span>
           </h3>
-          <p className="text-slate-200 text-sm group overflow-hidden cursor-pointer w-[250px] whitespace-nowrap">
+          <p className={`text-slate-200 text-sm group overflow-hidden w-[250px] ${!currentTrack && 'opacity-50'} whitespace-nowrap`}>
             <span className="block group-hover:animate-text-slide">
               {currentTrack?.artists.map(artist => artist.name).join(", ") || ""}
             </span>
@@ -172,90 +172,82 @@ const Player = () => {
       {/* Controls */}
       <div className="flex flex-col items-center gap-1 m-auto">
         <div className="flex gap-4">
-          <img
-            className="w-4 cursor-pointer"
+          {/* <img
+            className={`w-4 ${currentTrack ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
             src={assets.shuffle_icon}
             alt=""
-          />
+          /> */}
           <img
-            onClick={handlePrevious}
-            className="w-4 cursor-pointer"
+            onClick={currentTrack ? handlePrevious : undefined}
+            className={`w-4 ${currentTrack ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
             src={assets.prev_icon}
             alt=""
           />
-          {isPlaying ? (
-            <img
-              onClick={handlePlayPause}
-              className="w-4 cursor-pointer"
-              src={assets.pause_icon}
-              alt=""
-            />
-          ) : (
-            <img
-              onClick={handlePlayPause}
-              className="w-4 cursor-pointer"
-              src={assets.play_icon}
-              alt=""
-            />
-          )}
           <img
-            onClick={handleNext}
-            className="w-4 cursor-pointer"
+            onClick={currentTrack ? handlePlayPause : undefined}
+            className={`w-4 ${currentTrack ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
+            src={isPlaying ? assets.pause_icon : assets.play_icon}
+            alt=""
+          />
+          <img
+            onClick={currentTrack ? handleNext : undefined}
+            className={`w-4 ${currentTrack ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
             src={assets.next_icon}
             alt=""
           />
-          <img 
-            className="w-4 cursor-pointer" 
+          {/* <img 
+            className={`w-4 ${currentTrack ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`}
             src={assets.loop_icon} 
             alt="" 
-          />
-          {/* <img 
-            className="w-4 cursor-pointer" 
-            src={assets.mic_icon} 
-            alt="Lyrics" 
-            
           /> */}
         </div>
 
         {/* Progress Bar */}
         <div className="flex items-center gap-5">
-          <p>{formatTime(trackProgress)}</p>
+          <p className={!currentTrack && 'opacity-50'}>{formatTime(trackProgress)}</p>
           <div
-            onMouseDown={handleMouseDown}
-            className="relative w-[60vw] max-w-[500px] bg-gray-500 rounded-full cursor-pointer"
+            onMouseDown={currentTrack ? handleMouseDown : undefined}
+            className={`relative w-[60vw] max-w-[500px] bg-gray-500 rounded-full ${currentTrack ? 'cursor-pointer' : 'cursor-not-allowed'}`}
           >
             <div
-              className="h-1 bg-white rounded-full transition-all hover:bg-blue-600"
+              className={`h-1 rounded-full transition-all  ${currentTrack ? 'bg-white hover:bg-blue-600' : 'bg-gray-400'}`}
               style={{
                 width: `${playerState ? (trackProgress / playerState.duration) * 100 : 0}%`
               }}
             />
             <div
-              className="absolute top-[-6px] left-0 transform -translate-x-1/2 w-4 h-4 bg-white rounded-full cursor-pointer"
+              className={`absolute top-[-6px] left-0 transform -translate-x-1/2 w-4 h-4 rounded-full ${currentTrack ? 'bg-white cursor-pointer' : 'bg-gray-400 cursor-not-allowed'}`}
               style={{
                 left: `${playerState ? (trackProgress / playerState.duration) * 100 : 0}%`
               }}
             />
           </div>
-          <p>{playerState ? formatTime(playerState.duration) : '0:00'}</p>
+          <p className={!currentTrack && 'opacity-50'}>{playerState ? formatTime(playerState.duration) : '0:00'}</p>
         </div>
       </div>
 
       {/* Volume Controls */}
       <div className="hidden lg:flex items-center gap-2 opacity-75 transform -translate-x-[30px]">
-        {/* <img className="w-4 hover:cursor-pointer" src={assets.mic_icon} alt="" onClick={handleLyricsClick}  /> */}
-        {isMuted ? (
-          <img className="w-5" src={assets.mute_icon} alt="Mute" onClick={handleVolumeToggle} />
-        ) : (
-          <img className="w-5" src={assets.volume_up} alt="Volume" onClick={handleVolumeToggle} />
-        )}
+        {/* <img 
+          className={`w-4 ${currentTrack ? 'hover:cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} 
+          src={assets.mic_icon} 
+          alt="" 
+          onClick={currentTrack ? handleLyricsClick : undefined}  
+        /> */}
+        <img 
+          className={`w-5 ${currentTrack ? 'cursor-pointer' : 'opacity-50 cursor-not-allowed'}`} 
+          src={isMuted ? assets.mute_icon : assets.volume_up} 
+          alt={isMuted ? "Mute" : "Volume"} 
+          onClick={currentTrack ? handleVolumeToggle : undefined} 
+        />
         <input
           type="range"
           min="0"
           max="100"
           value={volume}
-          onChange={handleVolumeChange}
-          className="w-20 h-1"
+          onChange={currentTrack ? handleVolumeChange : undefined}
+          className={`w-20 h-1 ${!currentTrack && 'opacity-50 cursor-not-allowed'}`}
+          disabled={!currentTrack}
         />
       </div>
     </div>

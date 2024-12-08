@@ -85,8 +85,9 @@ const DisplayHome = () => {
                         {albums.map(album => (
                             <div
                                 key={album.id}
-                                className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26]"
+                                className="min-w-[180px] p-2 px-3 rounded cursor-pointer hover:bg-[#ffffff26] select-none"
                                 onClick={() => navigate(`/search/songs-by-album/${album.id}`)}
+                                tabIndex="-1"
                             >
                                 <img src={album.images[0]?.url} alt={album.name} className="rounded" />
                                 <h2 className="font-bold mt-2 mb-1 text-center">{album.name}</h2>

@@ -125,6 +125,7 @@ const SongsByArtist = () => {
     >
       <div className="absolute inset-0" style={{ background: 'rgba(0, 0, 0, 0.3)' }} />
 
+
       <div className="relative z-10">
         <Navbar />
           <div className="mt-1 flex gap-8 flex-col md:flex-row md:items-end">
@@ -146,34 +147,39 @@ const SongsByArtist = () => {
             </div>
           </div>
 
-          <div className="mt-8">
-            <div className="grid grid-cols-3 sm:grid-cols-4 py-4 px-2 text-[#a7a7a7] border-b border-[#ffffff1a]">
-              <p><b className="mr-4">#</b>Title</p>
-              <p>Album</p>
-              <p className="hidden sm:block">Date Released</p>
-              <p>Duration</p>
+          <div className="mt-8 px-4">
+            <div className="grid grid-cols-[60px_1fr_1fr_120px_80px] py-4 px-2 text-[#a7a7a7] border-b border-[#ffffff1a]">
+              <p className="text-left">#</p>
+              <p className="text-left">Title</p>
+              <p className="text-left">Album</p>
+              <p className="hidden sm:block text-left">Date Released</p>
+              <p className="text-left">Duration</p>
             </div>
 
             {songs.map((track, index) => (
               <div
                 key={track.id}
                 onClick={() => handlePlayTrack(track, index)}
-                className="grid grid-cols-3 sm:grid-cols-4 gap-2 p-2 items-center 
-                         text-[#a7a7a7] hover:bg-[#ffffff1a] cursor-pointer 
-                         transition-colors duration-200"
+                className="grid grid-cols-[60px_1fr_1fr_120px_80px] p-2 items-center 
+                          text-[#a7a7a7] hover:bg-[#ffffff26] cursor-pointer 
+                          transition-colors duration-200 select-none"
+                tabIndex="-1"
               >
-                <div className="flex items-center text-white">
-                  <span className="w-8 text-[#a7a7a7]">{index + 1}</span>
+                <span className="text-left">{index + 1}</span>
+                <div className="flex items-center gap-4 text-white min-w-0">
                   <img
-                    className="w-10 h-10 mr-4 rounded"
+                    className="w-10 h-10 rounded flex-shrink-0"
                     src={track.album?.images?.[0]?.url}
                     alt=""
                   />
                   <span className="truncate">{track.name}</span>
                 </div>
-                <p className="text-[15px] truncate hover:underline" onClick={(e) => { e.stopPropagation(); handleAlbumClick(track.album.id); }}>{track.album.name}</p>
-                <p className="text-[15px] hidden sm:block">{track.album.release_date}</p>
-                <p className="text-[15px]">{formatDuration(track.duration_ms)}</p>
+                <p className="text-[15px] truncate hover:underline" 
+                   onClick={(e) => { e.stopPropagation(); handleAlbumClick(track.album.id); }}>
+                  {track.album.name}
+                </p>
+                <p className="text-[15px] hidden sm:block text-left">{track.album.release_date}</p>
+                <p className="text-[15px] text-left">{formatDuration(track.duration_ms)}</p>
               </div>
             ))}
           </div>
