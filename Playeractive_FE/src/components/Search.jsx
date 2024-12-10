@@ -165,11 +165,15 @@ const Search = () => {
       'mtp',
       'son tung',
       'sơn tùng',
+      'Mỹ Tâm',
+      'Hồng Nhung',
+      'mỹ linh',
+      'Quang Hùng MasterD',
     ];
     
   
     const songPatterns = ['feat', 'ft.', 'remix', 'official', 'lyric', 'audio','chìm sâu','chán gái 707', 'thằng điên','lối nhỏ', 'trốn tìm','đi về nhà'];
-    const albumPatterns = ['album', 'ep', 'deluxe', 'edition', 'collection', 'đánh đổi', '99%', 'giải mã', 'giai ma', 'ái', 'chiều hôm ấy anh thấy màu đỏ', '1989', 'OK Computer', '25', 'Multiply', 'The Dark Side of the Moon', 'Rumours', 'Abbey Road', 'Harry’s House', 'Positions', ];
+    const albumPatterns = ['album', 'ep', 'deluxe', 'edition', 'collection', 'đánh đổi', '99%', 'giải mã', 'giai ma', 'ái', 'chiều hôm ấy anh thấy màu đỏ', '1989', 'OK Computer', '25', 'Multiply', 'The Dark Side of the Moon', 'Rumours', 'Abbey Road', 'Harry’s House', 'Positions', 'Bảo Tàng Của Những Tiếc Nuối', 'The Tortured Poets Department', 'Hit Me Hard and Soft', 'Short n’ Sweet', 'Eternal Sunshine', 'Mañana Será Bonito', 'SOS', 'Fireworks & Rollerblades', 'Starboy', 'One Thing At A Time', 'Stick Season', 'The Rise and Fall of a Midwest Princess', 'Passage Du Desir', 'My Light, My Destroyer', 'Odyssey', 'Weird Faith', 'Plastic Death', '1.0', 'Mong Manh', 'XT-TX', 'Hoàng', 'Hương Mùa Hè', 'The Stories of Us', 'The Secret of Us', 'Không Thể Cùng Nhau Suốt Kiếp', 'sinh', 'Vespertine', 'Đời Đá Vàng', 'CineLove', 'Loi Choi', 'ái', 'Chúng Ta Của Tương Lai', 'Nhạc Của Rừng', 'Anh Bờ Vai', 'Thủy Triều', 'Bật Nó Lên',];
     
     // Kiểm tra patterns trước
     if (songPatterns.some(pattern => query.toLowerCase().includes(pattern))) {
